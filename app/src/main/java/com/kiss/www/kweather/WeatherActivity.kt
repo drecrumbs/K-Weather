@@ -1,13 +1,15 @@
 package com.kiss.www.kweather
 
-import android.app.ProgressDialog
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.AsyncTask
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
+import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
@@ -23,7 +25,8 @@ import com.kiss.www.kweather.Model.OpenWeather
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_weather.*
 
-class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SwipeRefreshLayout.OnRefreshListener {
+
 
 
     //Constants
@@ -45,6 +48,13 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
         requestPermission()
         if(checkPlayService())
             buildGoogleApiClient()
+
+        layoutSwipeRefresh.setOnRefreshListener(this)
+    }
+
+    override fun onRefresh() {
+        locationCaptured = false
+        createLocationRequest()
     }
 
     override fun onStart() {
@@ -156,38 +166,38 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
 
     private inner class GetWeather: AsyncTask<String, Void, String>()
     {
-        internal var pd = ProgressDialog(this@WeatherActivity)
 
         override fun onPreExecute() {
             super.onPreExecute()
-            pd.setTitle("Please wait...")
-            pd.show()
+            layoutSwipeRefresh.isRefreshing = true
+            layoutWeatherContainer.visibility = View.GONE
         }
 
+        @SuppressLint("SetTextI18n")
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
             if(result!!.contains("Error: Not found city")) {
-                pd.dismiss()
                 return
             }
             val gson = Gson()
             val mType = object: TypeToken<OpenWeather>(){}.type
 
             openWeather = gson.fromJson<OpenWeather>(result,mType)
-            pd.dismiss()
-
             //Set Information into UI
-            txtCity.text = "${openWeather.name},${openWeather.sys!!.country}"
+            txtCity.text = "${openWeather.name}, ${openWeather.sys!!.country}"
             txtLastUpdate.text = "Last Updated: ${Common.dateNow}"
             txtDescription.text = "${openWeather.weather!![0].description}"
-            txtTime.text = "${Common.unixTimeStampToDateTime(openWeather.sys!!.sunrise)}/${Common.unixTimeStampToDateTime(openWeather.sys!!.sunset)}"
-            txtHumidity.text = "${openWeather.main!!.humidity}"
+            txtTime.text = "Sunrise: ${Common.unixTimeStampToDateTime(openWeather.sys!!.sunrise)} - Sunset: ${Common.unixTimeStampToDateTime(openWeather.sys!!.sunset)}"
+            txtHumidity.text = "Humidity: ${openWeather.main!!.humidity}%"
             txtTemperature.text = "${openWeather.main!!.temp} F"
             Picasso.with(this@WeatherActivity)
                     .load(Common.getImage(openWeather.weather!![0].icon!!))
                     .into(imgWeatherIcon)
 
-            locationCaptured = true;
+            layoutSwipeRefresh.isRefreshing = false
+            layoutWeatherContainer.visibility = View.VISIBLE
+
+            locationCaptured = true
         }
 
         override fun doInBackground(vararg params: String?): String {
