@@ -1,10 +1,11 @@
 package com.kiss.www.kweather
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Looper
 import android.support.v4.app.ActivityCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
@@ -14,8 +15,9 @@ import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.LocationListener
+import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -25,8 +27,7 @@ import com.kiss.www.kweather.Model.OpenWeather
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_weather.*
 
-class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, SwipeRefreshLayout.OnRefreshListener {
-
+class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SwipeRefreshLayout.OnRefreshListener {
 
 
     //Constants
@@ -37,23 +38,32 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
     //Variables
     var mGoogleApiClient:GoogleApiClient ?= null
     var mLocationRequest:LocationRequest ?= null
+    var mLocationCallback: LocationCallback? = null
     internal var openWeather = OpenWeather()
-    var locationCaptured = false;
+    var refreshLocation = false;
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather)
 
-        requestPermission()
-        if(checkPlayService())
+        requestPermissions()
+        if (hasGooglePlayServices()) {
             buildGoogleApiClient()
-
+        }
+        mLocationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                Log.i("LocationResult", locationResult.toString())
+                super.onLocationResult(locationResult)
+                val lat = locationResult?.locations?.get(0)?.latitude.toString()
+                val lon = locationResult?.locations?.get(0)?.longitude.toString()
+                GetWeather().execute(Common.apiRequest(lat, lon))
+            }
+        }
         layoutSwipeRefresh.setOnRefreshListener(this)
     }
 
     override fun onRefresh() {
-        locationCaptured = false
         createLocationRequest()
     }
 
@@ -72,15 +82,13 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
 
     override fun onResume() {
         super.onResume()
-
-        checkPlayService()
     }
 
-    private fun requestPermission() {
+    private fun requestPermissions() {
         if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
             && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
-            requestPermissions(arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION),PERMISSIONS_REQUEST_CODE)
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION), PERMISSIONS_REQUEST_CODE)
         }
     }
 
@@ -91,7 +99,7 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
             PERMISSIONS_REQUEST_CODE -> {
                 if(grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 {
-                    if(checkPlayService())
+                    if (hasGooglePlayServices())
                     {
                         buildGoogleApiClient()
                     }
@@ -109,7 +117,7 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
 
     }
 
-    private fun checkPlayService(): Boolean {
+    private fun hasGooglePlayServices(): Boolean {
         val resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
         if(resultCode != ConnectionResult.SUCCESS)
         {
@@ -130,15 +138,6 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
         Log.i("ERROR", "Connection failed: " + p0.errorCode)
     }
 
-    override fun onLocationChanged(location: Location?) {
-
-      //  txtID.text = "${location!!.latitude} - ${location!!.longitude}"
-        if(!locationCaptured) {
-            Log.d("Debug", "Location Changed!")
-            GetWeather().execute(Common.apiRequest(location!!.latitude.toString(), location!!.longitude.toString()))
-        }
-    }
-
     override fun onConnected(p0: Bundle?) {
         createLocationRequest()
     }
@@ -148,6 +147,7 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
         mLocationRequest!!.interval = 10000 // 10 seconds
         mLocationRequest!!.fastestInterval = 5000 // 5 Seconds
         mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest!!.setNumUpdates(1)
 
         if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
@@ -156,7 +156,7 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
 
         }
 
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest,this)
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, mLocationCallback, Looper.myLooper())
     }
 
     override fun onConnectionSuspended(p0: Int) {
@@ -189,7 +189,7 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
             txtDescription.text = "${openWeather.weather!![0].description}"
             txtTime.text = "Sunrise: ${Common.unixTimeStampToDateTime(openWeather.sys!!.sunrise)} - Sunset: ${Common.unixTimeStampToDateTime(openWeather.sys!!.sunset)}"
             txtHumidity.text = "Humidity: ${openWeather.main!!.humidity}%"
-            txtTemperature.text = "${openWeather.main!!.temp} F"
+            txtTemperature.text = "${openWeather.main!!.temp.toInt()}${Typography.degree}F"
             Picasso.with(this@WeatherActivity)
                     .load(Common.getImage(openWeather.weather!![0].icon!!))
                     .into(imgWeatherIcon)
@@ -197,7 +197,7 @@ class WeatherActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks
             layoutSwipeRefresh.isRefreshing = false
             layoutWeatherContainer.visibility = View.VISIBLE
 
-            locationCaptured = true
+            //  refreshLocation = false
         }
 
         override fun doInBackground(vararg params: String?): String {
