@@ -8,8 +8,11 @@ import java.util.*
  */
 
 object Common{
-    var API_KEY = "540717bb25664e4ed48aede738fb520f"
-    var API_LINK = "http://api.openweathermap.org/data/2.5/weather"
+
+    val API_KEY = "540717bb25664e4ed48aede738fb520f"
+    val API_LINK = "http://api.openweathermap.org/data/2.5/weather"
+    val HH_MM_A = "h:mm a"
+    val EEE_HH_MM_A = "EEE hh:mm a"
 
     fun apiRequest(lat:String, lon:String):String{
         var ab = StringBuilder(API_LINK)
@@ -18,8 +21,8 @@ object Common{
         return ab.toString()
     }
 
-    fun unixTimeStampToDateTime(unixTimeStamp:Double):String{
-        val dateFormat = SimpleDateFormat("h:mm a")
+    fun unixTimeStampToDateTime(unixTimeStamp: Double, format: String): String {
+        val dateFormat = SimpleDateFormat(format)
         val date = Date()
         date.time = unixTimeStamp.toLong()*1000
 
@@ -36,5 +39,4 @@ object Common{
             val date = Date()
             return dateFormat.format(date)
         }
-
 }
