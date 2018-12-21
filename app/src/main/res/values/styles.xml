@@ -10,4 +10,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="Widget.Support.CoordinatorLayout" parent="android:Widget">
+        <item name="statusBarBackground">@android:color/black</item>
+    </style>
 </resources>

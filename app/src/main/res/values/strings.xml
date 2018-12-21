@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">K Weather</string>
+    <string name="bitmoji_avatar_scope">https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar</string>
+    <string name="bitmoji_external_id_scope">https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar</string>
     <string name="wi_day_sunny">&#xf00d;</string>
     <string name="wi_day_cloudy">&#xf002;</string>
     <string name="wi_day_cloudy_gusts">&#xf000;</string>

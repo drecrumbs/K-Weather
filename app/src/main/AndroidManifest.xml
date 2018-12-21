@@ -15,10 +15,43 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".WeatherActivity">
+        <meta-data
+            android:name="com.snapchat.kit.sdk.clientId"
+            android:value="8d4b48f2-f45a-40ce-9f62-06264e254306" />
+        <meta-data
+            android:name="com.snapchat.kit.sdk.redirectUrl"
+            android:value="kweather://auth/v2/login" />
+        <meta-data
+            android:name="com.snapchat.kit.sdk.scopes"
+            android:resource="@array/snap_kit_scopes" /> <!-- This should be a string array of scopes !-->
+
+
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.snapchat.kit.sdk.SnapKitActivity"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!--
+                    Enter the parts of your redirect url below
+                    e.g. if your redirect url is my-app://abc/xy/z
+                        android:scheme="my-app"
+                        android:host="abc"
+                        android:path="/xy/z"
+                !-->
+                <data
+                    android:host="auth"
+                    android:path="/v2/login"
+                    android:scheme="kweather" />
             </intent-filter>
         </activity>
     </application>
