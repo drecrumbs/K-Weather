@@ -14,8 +14,8 @@ class MainActivityViewModel : ViewModel() {
     val logTag = javaClass.simpleName
 
     val model: Model = Model.getInstance()
-    val googleApiClient: MutableLiveData<GoogleApiClient> = MutableLiveData()
 
+    val googleApiClient: MutableLiveData<GoogleApiClient> = MutableLiveData()
     var currentBackgroundColor: Int = Color.BLACK
     var bitmojiURL: MutableLiveData<String> = MutableLiveData()
     var locationCallback: MutableLiveData<LocationCallback> = MutableLiveData()
@@ -41,10 +41,15 @@ class MainActivityViewModel : ViewModel() {
                 Log.d(logTag, "onLocationResult() -> $locationLogString")
             }
         }
+        refreshNews()
     }
 
     fun locationUpdate(): MutableLiveData<Pair<String, String>> {
         return location
+    }
+
+    fun bitmojiUrlUpdate(): MutableLiveData<String> {
+        return bitmojiURL
     }
 
     fun weatherUpdate(): MutableLiveData<OpenWeather> {
@@ -57,6 +62,14 @@ class MainActivityViewModel : ViewModel() {
 
     fun googleApiClient(): MutableLiveData<GoogleApiClient> {
         return googleApiClient
+    }
+
+    fun refreshNews() {
+        model.refreshNews()
+    }
+
+    fun refreshWeather() {
+        model.refreshWeather()
     }
 
 }

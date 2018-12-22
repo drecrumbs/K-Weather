@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.kiss.www.kweather.Common.Utils
+import com.kiss.www.kweather.Common.Utils.unixTimeStampToDateTime
 import com.kiss.www.kweather.Model.WeatherModel.OpenWeather
 import kotlinx.android.synthetic.main.fragment_weather.*
 
@@ -40,10 +41,6 @@ class WeatherFragment : Fragment() {
         txtWeatherIcon.typeface = Typeface.createFromAsset(context?.assets, "fonts/weather_font_regular.ttf")
         txtTempUnit.typeface = Typeface.createFromAsset(context?.assets, "fonts/weather_font_regular.ttf")
 
-        //  txtCity.text = "Detroit"
-        // viewModel.refreshWeather()
-
-
         viewModel.weatherUpdate().observe(this, Observer<OpenWeather> { weather ->
             run {
                 openWeather = weather
@@ -55,8 +52,7 @@ class WeatherFragment : Fragment() {
         })
 
         viewModel.locationUpdate().observe(this, Observer { location ->
-            //  viewModel.refreshWeather()
-            //  Log.d(localClassName, "locationUpdate() -> ${location.first} , ${location.second}")
+            Log.i(localClassName, "Location Updated: ${location.first}, ${location.second}")
         })
     }
 
@@ -68,9 +64,9 @@ class WeatherFragment : Fragment() {
         // txtLastUpdate.text = "Last Update: ${Utils.unixTimeStampToDateTime(openWeather.dt.toDouble(), Utils.EEE_HH_MM_A)}"
         txtDescription.text = "${openWeather.weather!![0].description}"
                 .replace(" ", "\n", true)
-        txtSunriseTime.text = "Sunrise: ${Utils.unixTimeStampToDateTime(openWeather.sys!!.sunrise, Utils.HH_MM_A)}"
-        txtSunsetTime.text = "Sunset: ${Utils.unixTimeStampToDateTime(openWeather.sys!!.sunset, Utils.HH_MM_A)}"
-        txtHumidity.text = "Humidity: ${openWeather.main!!.humidity}%"
+        txtSunriseTime.text = String.format("Sunrise: %s", unixTimeStampToDateTime(openWeather.sys!!.sunrise, Utils.HH_MM_A))
+        txtSunsetTime.text = String.format("Sunset: %s", unixTimeStampToDateTime(openWeather.sys!!.sunset, Utils.HH_MM_A))
+        txtHumidity.text = String.format("Humidity: %.0f%%", openWeather.main!!.humidity)
         txtTemperature.text = "${openWeather.main!!.temp.toInt()}"
 
         when (openWeather.weather!![0].icon!!) {

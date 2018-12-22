@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -27,13 +28,14 @@ import com.google.android.gms.location.LocationServices
 import com.kiss.www.kweather.Model.WeatherModel.OpenWeather
 import com.ramotion.circlemenu.CircleMenuView
 import com.snapchat.kit.sdk.Bitmoji
-import com.snapchat.kit.sdk.SnapLogin
 import com.snapchat.kit.sdk.bitmoji.OnBitmojiSelectedListener
 import com.snapchat.kit.sdk.bitmoji.networking.FetchAvatarUrlCallback
 import com.snapchat.kit.sdk.bitmoji.ui.BitmojiFragment
 import com.snapchat.kit.sdk.core.controller.LoginStateController
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_weather.*
+import java.util.*
+import kotlin.concurrent.timerTask
 
 class MainActivity : AppCompatActivity(),
         GoogleApiClient.ConnectionCallbacks,
@@ -47,6 +49,7 @@ class MainActivity : AppCompatActivity(),
         const val PERMISSIONS_REQUEST_CODE = 1001
         const val PLAY_SERVICE_RESOLUTION_REQUEST = 1000
         const val LOCATION_INTERVAL: Long = 36000000 // 10 * 1000 * 60 * 60 // Every Hour
+        const val DATA_RETRIEVAL_INTERVAL: Long = LOCATION_INTERVAL / 2
         const val SHARED_PREFERENCES = "com.kiss.www.preferences"
     }
 
@@ -56,7 +59,7 @@ class MainActivity : AppCompatActivity(),
     private var mLocationCallback: LocationCallback? = null
     private var openWeather: OpenWeather = OpenWeather()
     private var bitmojiUrl: String? = null
-    var refreshLocation = false;
+    private var timer: Timer = Timer()
 
     private lateinit var viewModel: MainActivityViewModel
 
@@ -67,34 +70,26 @@ class MainActivity : AppCompatActivity(),
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
 
         // Get Stored Bitmoji URL todo (1) Cache the image instead of doing a fetch on startup
-        bitmojiUrl = getSharedPreference("bitmojiUrl", null)
+        bitmojiUrl = getSharedPreference(Constants.SHARED_PREFERENCES, null)
 
         //Initialization
+        updateBitmojiAvatar()
         requestPermissions()
         observeViewModel()
 
-        imgWeatherIcon.setOnClickListener(View.OnClickListener { showBitmojiSelector() })
+        imgWeatherIcon.setOnClickListener { showBitmojiSelector() }
         layoutSwipeRefresh.setOnRefreshListener(this)
         circleMenu.eventListener = EventListener()
 
-
-        // Update Bitmoji if logged in todo (1) Use cached image if there
-        if (SnapLogin.isUserLoggedIn(this)) {
-            updateBitmojiAvatar()
-        }
-
-        //todo Make a "Home" loading fragment.
+        //todo Make a "Home" loading fragment. Change background once done loading
+        val colorArray = resources.getIntArray(R.array.colors)
+        changeBackground(viewModel.currentBackgroundColor, colorArray[0])
         supportFragmentManager.beginTransaction()
                 .replace(R.id.layoutWeatherContainer, WeatherFragment.newInstance())
                 .commitNow()
     }
 
     //Activity Lifecycle
-
-    override fun onStart() {
-        super.onStart()
-    }
-
     override fun onDestroy() {
         mGoogleApiClient?.disconnect()
         super.onDestroy()
@@ -102,9 +97,24 @@ class MainActivity : AppCompatActivity(),
 
     override fun onResume() {
         super.onResume()
-        restoreUI()
+        Log.d(localClassName, "Creating DataFetch Timer")
+        timer = Timer("DataFetch", false)
+        timer.scheduleAtFixedRate(timerTask {
+            viewModel.refreshNews()
+            viewModel.refreshWeather()
+        },
+                Constants.DATA_RETRIEVAL_INTERVAL,
+                Constants.DATA_RETRIEVAL_INTERVAL)
         bitmojiUrl = getSharedPreferences("kweather", Context.MODE_PRIVATE)
                 .getString("bitmojiUrl", null)
+
+        restoreUI()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(localClassName, "Canceling DataFetch Timer")
+        timer.cancel()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -118,7 +128,6 @@ class MainActivity : AppCompatActivity(),
                 Log.d(localClassName, "weatherUpdate() Obeservable -> Weather: ${weather?.weather?.get(0)}")
                 runOnUiThread {
                     if (openWeather != weather) {
-                        //updateWeatherUI(weather)
                         layoutSwipeRefresh.isRefreshing = false
                     }
                 }
@@ -134,10 +143,15 @@ class MainActivity : AppCompatActivity(),
 
         viewModel.googleApiClient().observe(this, Observer { googleApiClient ->
             run {
-                Log.d(localClassName, "googleApiClient() Observable -> ${googleApiClient.toString()}")
+                Log.d(localClassName, "googleApiClient() Observable -> $googleApiClient")
                 mGoogleApiClient = googleApiClient
                 connectGoogleApiClient()
             }
+        })
+
+        viewModel.bitmojiUrlUpdate().observe(this, Observer { url ->
+            bitmojiUrl = url
+            updateBitmojiAvatar()
         })
 
         viewModel.locationUpdate().observe(this, Observer { _ ->
@@ -183,8 +197,9 @@ class MainActivity : AppCompatActivity(),
         runOnUiThread {
             val bitmojiFragment = BitmojiFragment()
 
-            getSupportFragmentManager().beginTransaction()
+            supportFragmentManager.beginTransaction()
                     .replace(R.id.bottomContainer, bitmojiFragment)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
         }
     }
@@ -230,20 +245,15 @@ class MainActivity : AppCompatActivity(),
 
     override fun onLoginSucceeded() {
         Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
-        updateBitmojiAvatar()
     }
 
     override fun onBitmojiSelected(p0: String?, p1: Drawable?) {
-        bitmojiUrl = p0
-        saveSharedPreference("bitmojiUrl", "${bitmojiUrl}")
-
-        getSupportFragmentManager().beginTransaction()
+        viewModel.bitmojiURL.value = p0
+        saveSharedPreference(Constants.SHARED_PREFERENCES, "${bitmojiUrl}")
+        supportFragmentManager.beginTransaction()
                 .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
-                .setCustomAnimations(R.anim.abc_grow_fade_in_from_bottom, R.anim.abc_shrink_fade_out_from_bottom)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
                 .commit()
-
-        updateBitmojiAvatar()
-
     }
 
     // Permissions & Location
@@ -331,7 +341,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun changeBackground(fromColor: Int, toColor: Int) {
         val colorAnimator = ValueAnimator.ofArgb(fromColor, toColor)
-        colorAnimator.setDuration(1000)
+        colorAnimator.duration = 1000
         colorAnimator.addUpdateListener { animator ->
             run {
                 rootLayout.setBackgroundColor(animator.animatedValue as Int)
@@ -344,21 +354,21 @@ class MainActivity : AppCompatActivity(),
     private fun saveSharedPreference(key: String, value: String) {
         getSharedPreferences("kweather", Context.MODE_PRIVATE)
                 .edit()
-                .putString(key, "${value}")
-                .commit()
+                .putString(key, "$value")
+                .apply()
     }
 
     private fun getSharedPreference(key: String, defaultValue: String?): String? {
         return getSharedPreferences("kweather", Context.MODE_PRIVATE)
-                .getString("${key}", "${(defaultValue)}")
+                .getString("$key", "${(defaultValue)}")
     }
 
     inner class EventListener : CircleMenuView.EventListener() {
+        var prevButtonIndex: Int = 0
         override fun onButtonClickAnimationStart(view: CircleMenuView, buttonIndex: Int) {
             Log.d(javaClass.simpleName, "Button Click: ${view.id}")
             super.onButtonLongClickAnimationStart(view, buttonIndex)
             val colorArray = resources.getIntArray(R.array.colors)
-
             val fromColor =
                     if (rootLayout.background is ColorDrawable)
                         (rootLayout.background as ColorDrawable).color
@@ -366,8 +376,26 @@ class MainActivity : AppCompatActivity(),
                         Color.BLACK
             val toColor = colorArray[buttonIndex]
 
-            viewModel.currentBackgroundColor = toColor
-            changeBackground(fromColor, toColor)
+            if (prevButtonIndex != buttonIndex) {
+                when (buttonIndex) {
+                    0 ->  // Weather
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.layoutWeatherContainer, WeatherFragment.newInstance())
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .commitNow()
+
+                    1 -> // News
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.layoutWeatherContainer, NewsFragment.newInstance())
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .commitNow()
+                    else -> return
+                }
+
+                prevButtonIndex = buttonIndex
+                viewModel.currentBackgroundColor = toColor
+                changeBackground(fromColor, toColor)
+            }
         }
     }
 }

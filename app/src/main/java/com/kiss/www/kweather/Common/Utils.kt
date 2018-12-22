@@ -24,6 +24,11 @@ object Utils {
         return ab.toString()
     }
 
+    fun getNewsUrlString(): String {
+        val urlString = "https://news.google.com/news/rss/search/section/q/technology?ned=us&gl=US&hl=en"
+        return urlString
+    }
+
     fun unixTimeStampToDateTime(unixTimeStamp: Double, format: String): String {
         val dateFormat = SimpleDateFormat(format)
         val date = Date()
