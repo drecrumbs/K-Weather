@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.kiss.www.kweather.Common.Utils
-import com.kiss.www.kweather.Common.Utils.unixTimeStampToDateTime
-import com.kiss.www.kweather.Model.WeatherModel.OpenWeather
+import com.kiss.www.kweather.common.Utils
+import com.kiss.www.kweather.common.Utils.unixTimeStampToDateTime
+import com.kiss.www.kweather.model.weatherModel.OpenWeather
 import kotlinx.android.synthetic.main.fragment_weather.*
 
 
@@ -21,10 +21,9 @@ class WeatherFragment : Fragment() {
         fun newInstance() = WeatherFragment()
     }
 
+    private val logTag = javaClass.simpleName
     private lateinit var viewModel: WeatherFragmentViewModel
     private var openWeather: OpenWeather = OpenWeather()
-
-    private val localClassName = javaClass.simpleName
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
@@ -45,14 +44,14 @@ class WeatherFragment : Fragment() {
             run {
                 openWeather = weather
                 if (openWeather.weather != null) {
-                    Log.d(localClassName, "weatherUpdate() Obeservable -> Weather: ${weather?.weather?.get(0)}")
+                    Log.d(logTag, "weatherUpdate() Obeservable -> Weather: ${weather?.weather?.get(0)}")
                     updateWeatherUI(weather)
                 }
             }
         })
 
         viewModel.locationUpdate().observe(this, Observer { location ->
-            Log.i(localClassName, "Location Updated: ${location.first}, ${location.second}")
+            Log.i(logTag, "Location Updated: ${location.first}, ${location.second}")
         })
     }
 

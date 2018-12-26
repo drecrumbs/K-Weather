@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.kiss.www.kweather.Model.NewsModel.News
+import com.kiss.www.kweather.model.newsModel.News
 import kotlinx.android.synthetic.main.fragment_news.*
 import java.util.*
 import kotlin.concurrent.timerTask
@@ -39,11 +39,9 @@ class NewsFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(NewsFragmentViewModel::class.java)
 
         viewModel.newsUpdate().observe(this, Observer { newsList ->
+            Log.d(logTag, "UH OH")
             news = newsList
-            activity!!.runOnUiThread {
-                Log.d(logTag, "Setting News Feed..")
-                setNewsFeed(news)
-            }
+            setNewsFeed(newsList)
         })
 
     }
@@ -53,10 +51,10 @@ class NewsFragment : Fragment() {
         timer = Timer("newsFeed", false)
         timer.scheduleAtFixedRate(
                 timerTask {
-                    Log.d(logTag, "TIMER: Updating News Feed...")
                     activity!!.runOnUiThread {
-                        updateNewsFeed()
-                    }
+                          updateNewsFeed()
+                          Log.d(logTag, "TIMER: Updating News Feed UI...")
+                      }
                 },
                 10000,
                 10000)

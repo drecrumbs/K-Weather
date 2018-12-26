@@ -1,4 +1,8 @@
-package com.kiss.www.kweather.Model.WeatherModel
+package com.kiss.www.kweather.model.weatherModel
+
+import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * Created by Dre on 12/24/2017.
@@ -36,5 +40,20 @@ class OpenWeather{
         this.id = id
         this.name = name
         this.cod = cod
+    }
+
+    companion object {
+        fun getOpenWeatherObject(vararg json:String): OpenWeather {
+            var openWeather = OpenWeather()
+            if (json.contains("Error: Not found city")) {
+                Log.e(this.javaClass.simpleName, "City Was Not Found!")
+                return openWeather
+            }
+
+            val gson = Gson()
+            val mType = object : TypeToken<OpenWeather>() {}.type
+            openWeather = gson.fromJson<OpenWeather>(json[0], mType)
+            return openWeather
+        }
     }
 }

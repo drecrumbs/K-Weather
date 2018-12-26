@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationCallback
-import com.kiss.www.kweather.Model.Model
-import com.kiss.www.kweather.Model.WeatherModel.OpenWeather
+import com.kiss.www.kweather.model.Model
+import com.kiss.www.kweather.model.weatherModel.OpenWeather
 
 class WeatherFragmentViewModel : ViewModel() {
     val logTag = javaClass.simpleName

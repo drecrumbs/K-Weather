@@ -1,4 +1,4 @@
-package com.kiss.www.kweather.Model.WeatherModel
+package com.kiss.www.kweather.model.weatherModel
 
 /**
  * Created by Dre on 12/24/2017.

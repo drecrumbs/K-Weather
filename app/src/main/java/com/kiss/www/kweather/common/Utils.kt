@@ -1,4 +1,4 @@
-package com.kiss.www.kweather.Common
+package com.kiss.www.kweather.common
 
 import android.os.Build
 import java.text.SimpleDateFormat
