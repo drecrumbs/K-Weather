@@ -7,15 +7,15 @@ import androidx.lifecycle.ViewModel
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
-import com.kiss.www.kweather.Model.Model
-import com.kiss.www.kweather.Model.WeatherModel.OpenWeather
+import com.kiss.www.kweather.model.Model
+import com.kiss.www.kweather.model.weatherModel.OpenWeather
 
 class MainActivityViewModel : ViewModel() {
     val logTag = javaClass.simpleName
 
     val model: Model = Model.getInstance()
-    val googleApiClient: MutableLiveData<GoogleApiClient> = MutableLiveData()
 
+    val googleApiClient: MutableLiveData<GoogleApiClient> = MutableLiveData()
     var currentBackgroundColor: Int = Color.BLACK
     var bitmojiURL: MutableLiveData<String> = MutableLiveData()
     var locationCallback: MutableLiveData<LocationCallback> = MutableLiveData()
@@ -36,15 +36,20 @@ class MainActivityViewModel : ViewModel() {
                                 "  ALT: ${locationResult?.locations?.get(0)?.altitude.toString()}" +
                                 "  ACCURACY: ${locationResult?.locations?.get(0)?.accuracy.toString()}"
 
+                Log.d(logTag, "onLocationResult() -> $locationLogString")
                 model.location = location
                 model.refreshWeather(location.value!!)
-                Log.d(logTag, "onLocationResult() -> $locationLogString")
             }
         }
+        refreshNews()
     }
 
     fun locationUpdate(): MutableLiveData<Pair<String, String>> {
         return location
+    }
+
+    fun bitmojiUrlUpdate(): MutableLiveData<String> {
+        return bitmojiURL
     }
 
     fun weatherUpdate(): MutableLiveData<OpenWeather> {
@@ -57,6 +62,14 @@ class MainActivityViewModel : ViewModel() {
 
     fun googleApiClient(): MutableLiveData<GoogleApiClient> {
         return googleApiClient
+    }
+
+    fun refreshNews() {
+        model.refreshNews()
+    }
+
+    fun refreshWeather() {
+        model.refreshWeather()
     }
 
 }

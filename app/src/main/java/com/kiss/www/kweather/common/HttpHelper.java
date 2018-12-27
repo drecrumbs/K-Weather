@@ -1,14 +1,10 @@
-package com.kiss.www.kweather.Common;
+package com.kiss.www.kweather.common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-/**
- * Created by Dre on 12/24/2017.
- */
 
 public class HttpHelper {
     private static String stream = null;

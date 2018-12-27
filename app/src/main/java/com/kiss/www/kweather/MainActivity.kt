@@ -13,50 +13,55 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
-import com.kiss.www.kweather.Model.WeatherModel.OpenWeather
+import com.kiss.www.kweather.model.weatherModel.OpenWeather
 import com.ramotion.circlemenu.CircleMenuView
 import com.snapchat.kit.sdk.Bitmoji
-import com.snapchat.kit.sdk.SnapLogin
 import com.snapchat.kit.sdk.bitmoji.OnBitmojiSelectedListener
 import com.snapchat.kit.sdk.bitmoji.networking.FetchAvatarUrlCallback
 import com.snapchat.kit.sdk.bitmoji.ui.BitmojiFragment
 import com.snapchat.kit.sdk.core.controller.LoginStateController
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_weather.*
+import java.util.*
+import kotlin.concurrent.timerTask
+import kotlin.math.absoluteValue
 
-class MainActivity : AppCompatActivity(),
+class MainActivity : FragmentActivity(),
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         SwipeRefreshLayout.OnRefreshListener,
         LoginStateController.OnLoginStateChangedListener,
-        OnBitmojiSelectedListener {
+        OnBitmojiSelectedListener,
+        ViewPager.OnPageChangeListener{
 
 
     object Constants {
         const val PERMISSIONS_REQUEST_CODE = 1001
         const val PLAY_SERVICE_RESOLUTION_REQUEST = 1000
         const val LOCATION_INTERVAL: Long = 36000000 // 10 * 1000 * 60 * 60 // Every Hour
+        const val DATA_RETRIEVAL_INTERVAL: Long = LOCATION_INTERVAL / 2
         const val SHARED_PREFERENCES = "com.kiss.www.preferences"
+        const val NUM_PAGES = 2
     }
 
     //Variables
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mLocationRequest: LocationRequest = LocationRequest()
     private var mLocationCallback: LocationCallback? = null
-    private var openWeather: OpenWeather = OpenWeather()
     private var bitmojiUrl: String? = null
-    var refreshLocation = false;
+    private var timer: Timer = Timer()
 
     private lateinit var viewModel: MainActivityViewModel
 
@@ -67,33 +72,28 @@ class MainActivity : AppCompatActivity(),
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
 
         // Get Stored Bitmoji URL todo (1) Cache the image instead of doing a fetch on startup
-        bitmojiUrl = getSharedPreference("bitmojiUrl", null)
+        bitmojiUrl = getSharedPreference(Constants.SHARED_PREFERENCES, null)
 
         //Initialization
+        updateBitmojiAvatar()
         requestPermissions()
         observeViewModel()
 
-        imgWeatherIcon.setOnClickListener(View.OnClickListener { showBitmojiSelector() })
+        imgWeatherIcon.setOnClickListener { showBitmojiSelector() }
         layoutSwipeRefresh.setOnRefreshListener(this)
         circleMenu.eventListener = EventListener()
 
+        //todo Make a "Home" loading fragment. Change background once done loading
+        val colorArray = resources.getIntArray(R.array.colors)
+        changeBackground(viewModel.currentBackgroundColor, colorArray[0])
 
-        // Update Bitmoji if logged in todo (1) Use cached image if there
-        if (SnapLogin.isUserLoggedIn(this)) {
-            updateBitmojiAvatar()
-        }
-
-        //todo Make a "Home" loading fragment.
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.layoutWeatherContainer, WeatherFragment.newInstance())
-                .commitNow()
+        val pagerAdapter = ScreenSlidePageAdapter(supportFragmentManager)
+        contentViewPager.adapter = pagerAdapter
+        contentViewPager.setPageTransformer(false, ZoomOutPageTransformer())
+        contentViewPager.addOnPageChangeListener(this)
     }
 
-    //Activity Lifecycle
-
-    override fun onStart() {
-        super.onStart()
-    }
+    //Activity Lifecycle and UI
 
     override fun onDestroy() {
         mGoogleApiClient?.disconnect()
@@ -102,9 +102,24 @@ class MainActivity : AppCompatActivity(),
 
     override fun onResume() {
         super.onResume()
-        restoreUI()
+        Log.d(localClassName, "Creating DataFetch Timer")
+        timer = Timer("DataFetch", false)
+        timer.scheduleAtFixedRate(timerTask {
+            viewModel.refreshNews()
+            viewModel.refreshWeather()
+        },
+        Constants.DATA_RETRIEVAL_INTERVAL,
+        Constants.DATA_RETRIEVAL_INTERVAL)
         bitmojiUrl = getSharedPreferences("kweather", Context.MODE_PRIVATE)
                 .getString("bitmojiUrl", null)
+
+        restoreUI()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(localClassName, "Canceling DataFetch Timer")
+        timer.cancel()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -112,16 +127,29 @@ class MainActivity : AppCompatActivity(),
         if (hasFocus) restoreUI()
     }
 
+    override fun onBackPressed() {
+        when {
+            bitmojiSelectorIsShowing -> {
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                        .commit()
+                bitmojiSelectorIsShowing = false
+
+            }
+
+            contentViewPager.currentItem != 0 -> {
+                contentViewPager.setCurrentItem(contentViewPager.currentItem - 1, true)
+            }
+
+            else -> finish()
+        }
+    }
+
     private fun observeViewModel() {
         viewModel.weatherUpdate().observe(this, Observer<OpenWeather> { weather ->
             run {
-                Log.d(localClassName, "weatherUpdate() Obeservable -> Weather: ${weather?.weather?.get(0)}")
-                runOnUiThread {
-                    if (openWeather != weather) {
-                        //updateWeatherUI(weather)
-                        layoutSwipeRefresh.isRefreshing = false
-                    }
-                }
+                layoutSwipeRefresh.isRefreshing = false
             }
         })
 
@@ -134,14 +162,15 @@ class MainActivity : AppCompatActivity(),
 
         viewModel.googleApiClient().observe(this, Observer { googleApiClient ->
             run {
-                Log.d(localClassName, "googleApiClient() Observable -> ${googleApiClient.toString()}")
+                Log.d(localClassName, "googleApiClient() Observable -> $googleApiClient")
                 mGoogleApiClient = googleApiClient
                 connectGoogleApiClient()
             }
         })
 
-        viewModel.locationUpdate().observe(this, Observer { _ ->
-
+        viewModel.bitmojiUrlUpdate().observe(this, Observer { url ->
+            bitmojiUrl = url
+            updateBitmojiAvatar()
         })
     }
 
@@ -179,13 +208,26 @@ class MainActivity : AppCompatActivity(),
 
     //Bitmoji
 
+    private var bitmojiSelectorIsShowing: Boolean = false
+
     private fun showBitmojiSelector() {
         runOnUiThread {
             val bitmojiFragment = BitmojiFragment()
-
-            getSupportFragmentManager().beginTransaction()
+            supportFragmentManager.beginTransaction()
                     .replace(R.id.bottomContainer, bitmojiFragment)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
+            bitmojiSelectorIsShowing = true
+        }
+    }
+
+    private fun hideBitmojiSelector() {
+        runOnUiThread {
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                    .commit()
+            bitmojiSelectorIsShowing = false
         }
     }
 
@@ -230,23 +272,15 @@ class MainActivity : AppCompatActivity(),
 
     override fun onLoginSucceeded() {
         Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
-        updateBitmojiAvatar()
     }
 
     override fun onBitmojiSelected(p0: String?, p1: Drawable?) {
-        bitmojiUrl = p0
-        saveSharedPreference("bitmojiUrl", "${bitmojiUrl}")
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
-                .setCustomAnimations(R.anim.abc_grow_fade_in_from_bottom, R.anim.abc_shrink_fade_out_from_bottom)
-                .commit()
-
-        updateBitmojiAvatar()
-
+        viewModel.bitmojiURL.value = p0
+        saveSharedPreference(Constants.SHARED_PREFERENCES, "$bitmojiUrl")
+        hideBitmojiSelector()
     }
 
-    // Permissions & Location
+    // Permissions & Google Play Services
 
     private fun requestPermissions() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -301,6 +335,8 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
+    // Location
+
     override fun onConnectionFailed(p0: ConnectionResult) {
         Log.i("ERROR", "Connection failed: " + p0.errorCode)
     }
@@ -331,7 +367,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun changeBackground(fromColor: Int, toColor: Int) {
         val colorAnimator = ValueAnimator.ofArgb(fromColor, toColor)
-        colorAnimator.setDuration(1000)
+        colorAnimator.duration = 1000
         colorAnimator.addUpdateListener { animator ->
             run {
                 rootLayout.setBackgroundColor(animator.animatedValue as Int)
@@ -344,30 +380,118 @@ class MainActivity : AppCompatActivity(),
     private fun saveSharedPreference(key: String, value: String) {
         getSharedPreferences("kweather", Context.MODE_PRIVATE)
                 .edit()
-                .putString(key, "${value}")
-                .commit()
+                .putString(key, "$value")
+                .apply()
     }
 
     private fun getSharedPreference(key: String, defaultValue: String?): String? {
         return getSharedPreferences("kweather", Context.MODE_PRIVATE)
-                .getString("${key}", "${(defaultValue)}")
+                .getString("$key", "${(defaultValue)}")
     }
 
-    inner class EventListener : CircleMenuView.EventListener() {
+    // ViewPager Scroll Listener
+
+    override fun onPageScrollStateChanged(state: Int) {}
+
+    override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+    }
+
+    override fun onPageSelected(position: Int) {
+        val colorArray = resources.getIntArray(R.array.colors)
+        val toColor = colorArray[position]
+
+        val fromColor =
+                if (rootLayout.background is ColorDrawable)
+                    (rootLayout.background as ColorDrawable).color
+                else
+                    Color.BLACK
+
+        viewModel.currentBackgroundColor = toColor
+        changeBackground(fromColor, toColor)
+    }
+
+    // Additional Classes
+
+    private inner class ScreenSlidePageAdapter(supportFragmentManager: FragmentManager?) : FragmentStatePagerAdapter(supportFragmentManager) {
+        override fun getItem(position: Int): Fragment {
+            Log.d("GET ITEM", position.toString())
+            when (position) {
+                0 ->  // Weather
+                    return WeatherFragment.newInstance()
+                1 -> // News
+                    return NewsFragment.newInstance()
+            }
+            Log.d("GET ITEM", "WTF")
+            return Fragment()
+        }
+
+
+        override fun getCount(): Int = Constants.NUM_PAGES
+    }
+
+    private inner class ZoomOutPageTransformer : ViewPager.PageTransformer {
+        private val minScale = 0.85f
+        private val minAlpha = 0.5f
+
+        override fun transformPage(view: View, position: Float) {
+            view.apply {
+                val pageWidth = width
+                val pageHeight = height
+                when {
+                    position.absoluteValue <= 1 -> { // [-1,1] Modify the default slide transition to shrink the page as well
+                        val scaleFactor = Math.max(minScale, 1 - Math.abs(position))
+                        val vertMargin = pageHeight * (1 - scaleFactor) / 2
+                        val horzMargin = pageWidth * (1 - scaleFactor) / 2
+                        translationX = if (position < 0) {
+                            horzMargin - vertMargin / 2
+                        } else {
+                            horzMargin + vertMargin / 2
+                        }
+
+                        // Scale the page down (between minScale and 1)
+                        scaleX = scaleFactor
+                        scaleY = scaleFactor
+
+                        // Fade the page relative to its size.
+                        alpha = (minAlpha +
+                                (((scaleFactor - minScale) / (1 - minScale)) * (1 - minAlpha)))
+                    }
+                    else -> { alpha = 0f /* (-Infinity ,+Infinity) This page is way off-screen.*/ }
+                }
+            }
+        }
+    }
+
+    private inner class EventListener : CircleMenuView.EventListener() {
+        private var prevButtonIndex: Int = 0
         override fun onButtonClickAnimationStart(view: CircleMenuView, buttonIndex: Int) {
             Log.d(javaClass.simpleName, "Button Click: ${view.id}")
             super.onButtonLongClickAnimationStart(view, buttonIndex)
             val colorArray = resources.getIntArray(R.array.colors)
+            val toColor = colorArray[buttonIndex]
 
             val fromColor =
                     if (rootLayout.background is ColorDrawable)
                         (rootLayout.background as ColorDrawable).color
                     else
                         Color.BLACK
-            val toColor = colorArray[buttonIndex]
 
-            viewModel.currentBackgroundColor = toColor
-            changeBackground(fromColor, toColor)
+            if (prevButtonIndex != buttonIndex) {
+                when (buttonIndex) {
+                    0 ->  // Weather
+                        contentViewPager.setCurrentItem(0, true)
+
+                    1 -> // News
+                        contentViewPager.setCurrentItem(1, true)
+                    else -> return
+                }
+
+                prevButtonIndex = buttonIndex
+                viewModel.currentBackgroundColor = toColor
+                changeBackground(fromColor, toColor)
+            }
         }
     }
 }
+
+

@@ -28,6 +28,11 @@
                 android:layout_gravity="center"
                 android:orientation="horizontal">
 
+                <androidx.viewpager.widget.ViewPager
+                    android:id="@+id/contentViewPager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

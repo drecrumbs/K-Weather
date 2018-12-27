@@ -2,11 +2,11 @@
 <resources>
     <array name="icons">
         <!-- 24dp? -->
-        <item>@drawable/weather_sunset_down</item>
-        <item>@drawable/weather_sunset_down</item>
-        <item>@drawable/weather_sunset_down</item>
-        <item>@drawable/weather_sunset_down</item>
-        <item>@drawable/weather_sunset_down</item>
+        <item>@drawable/ic_cloud</item>
+        <item>@drawable/ic_news</item>
+        <item>@drawable/ic_close_black_24dp</item>
+        <item>@drawable/ic_close_black_24dp</item>
+        <item>@drawable/ic_close_black_24dp</item>
     </array>
     <array name="colors">
         <item>@android:color/holo_blue_light</item>
