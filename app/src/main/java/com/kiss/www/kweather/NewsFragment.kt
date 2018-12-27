@@ -3,10 +3,12 @@ package com.kiss.www.kweather
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -39,9 +41,9 @@ class NewsFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(NewsFragmentViewModel::class.java)
 
         viewModel.newsUpdate().observe(this, Observer { newsList ->
-            Log.d(logTag, "UH OH")
+            Log.d(logTag, "News Update: Setting News Feed UI")
             news = newsList
-            setNewsFeed(newsList)
+            activity?.runOnUiThread{setNewsFeed(newsList)}
         })
 
     }
@@ -51,10 +53,8 @@ class NewsFragment : Fragment() {
         timer = Timer("newsFeed", false)
         timer.scheduleAtFixedRate(
                 timerTask {
-                    activity!!.runOnUiThread {
-                          updateNewsFeed()
-                          Log.d(logTag, "TIMER: Updating News Feed UI...")
-                      }
+                    Log.d(logTag, "Timer: Updating News Feed UI")
+                    activity?.runOnUiThread {updateNewsUI()}
                 },
                 10000,
                 10000)
@@ -66,44 +66,29 @@ class NewsFragment : Fragment() {
         timer.cancel()
     }
 
-    private fun updateNewsFeed() {
+    private fun updateNewsUI() {
+
+        fun updateItem(newsItemTextView: TextView){
+            val newsItemNumber = IntRange.random(0, news.size)
+            newsItemTextView.visibility = View.GONE
+            newsItemTextView.isClickable = false
+            Handler().postDelayed({
+                newsItemTextView.setOnClickListener { openWebsite(Uri.parse(news[newsItemNumber].link)) }
+                newsItemTextView.text = format(news[newsItemNumber])
+                newsItemTextView.visibility = View.VISIBLE
+                newsItemTextView.isClickable = true
+            },2000)
+        }
+
         if (!news.isEmpty()) {
             val random = IntRange.random(1, 5)
-            val randomNewsItem = IntRange.random(0, news.size)
             when (random) {
-                1 -> {
-                    newsItemOne.visibility = View.GONE
-                    newsItemOne.text = news[randomNewsItem].title
-                    newsItemOne.setOnClickListener { openWebsite(Uri.parse(news[randomNewsItem].link)) }
-                }
-                2 -> {
-                    newsItemTwo.visibility = View.GONE
-                    newsItemTwo.text = news[randomNewsItem].title
-                    newsItemTwo.setOnClickListener { openWebsite(Uri.parse(news[randomNewsItem].link)) }
-                }
-                3 -> {
-                    newsItemThree.visibility = View.GONE
-                    newsItemThree.text = news[randomNewsItem].title
-                    newsItemThree.setOnClickListener { openWebsite(Uri.parse(news[randomNewsItem].link)) }
-                }
-                4 -> {
-                    newsItemFour.visibility = View.GONE
-                    newsItemFour.text = news[randomNewsItem].title
-                    newsItemFour.setOnClickListener { openWebsite(Uri.parse(news[randomNewsItem].link)) }
-                }
-                5 -> {
-                    newsItemFive.visibility = View.GONE
-                    newsItemFive.text = news[randomNewsItem].title
-                    newsItemFive.setOnClickListener { openWebsite(Uri.parse(news[randomNewsItem].link)) }
-                }
+                1 -> {updateItem(newsItemOne)}
+                2 -> {updateItem(newsItemTwo)}
+                3 -> {updateItem(newsItemThree)}
+                4 -> {updateItem(newsItemFour)}
+                5 -> {updateItem(newsItemFive)}
             }
-
-            newsItemOne.visibility = View.VISIBLE
-            newsItemTwo.visibility = View.VISIBLE
-            newsItemThree.visibility = View.VISIBLE
-            newsItemFour.visibility = View.VISIBLE
-            newsItemFive.visibility = View.VISIBLE
-
         }
     }
 
@@ -113,7 +98,7 @@ class NewsFragment : Fragment() {
 
         repeat(5, action = {
             val randomNumer = IntRange.random(0, newsList.size)
-            titlesList.add(newsList[randomNumer].title)
+            titlesList.add(format(newsList[randomNumer]))
             linksList.add(Uri.parse(newsList[randomNumer].link))
         })
 
@@ -139,6 +124,13 @@ class NewsFragment : Fragment() {
         startActivity(intent)
     }
 
+    private fun format(newsItem:News):String{
+        return StringBuilder()
+                .append(newsItem.title)
+                .append("\n")
+                .append(newsItem.author)
+                .toString()
+    }
 }
 
 private fun IntRange.Companion.random(start: Int, end: Int): Int {

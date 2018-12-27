@@ -7,8 +7,8 @@ import com.kiss.www.kweather.common.Utils
 import com.kiss.www.kweather.model.newsModel.News
 import com.kiss.www.kweather.model.weatherModel.OpenWeather
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 
@@ -25,20 +25,22 @@ class Model {
 
 
     private val logTag = javaClass.simpleName
-    var location: MutableLiveData<Pair<String, String>> = MutableLiveData()
+    var location: MutableLiveData<Pair<String, String>> = MutableLiveData(Pair("0","0"))
     var openWeather: MutableLiveData<OpenWeather> = MutableLiveData()
     var newsList: MutableLiveData<List<News>> = MutableLiveData()
 
     fun refreshWeather(mLocation: Pair<String, String> = location.value!!) = runBlocking {
         val openWeatherUrlString = Utils.getOpenWeatherUrlString(mLocation.first, mLocation.second)
-        openWeather.value = this.async (Dispatchers.IO) { fetchWeather(mLocation)}.await()
         Log.d(logTag, "WEATHER DATA FETCH -> $openWeatherUrlString")
+
+        openWeather.value = withContext(Dispatchers.IO) {fetchWeather(mLocation)}
     }
 
     fun refreshNews() = runBlocking {
         val newsUrlString = Utils.getNewsUrlString()
-        newsList.value = this.async(Dispatchers.IO){ fetchNews() }.await()
         Log.d(logTag, "NEWS DATA FETCH -> $newsUrlString")
+
+        newsList.value = withContext(Dispatchers.IO) {fetchNews()}
     }
 
     private fun fetchWeather(location: Pair<String, String>):OpenWeather {

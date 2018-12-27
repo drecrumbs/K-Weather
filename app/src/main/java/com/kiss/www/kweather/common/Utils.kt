@@ -10,7 +10,6 @@ import java.util.*
  */
 
 object Utils {
-
     private const val API_KEY = "540717bb25664e4ed48aede738fb520f"
     private const val API_LINK = "http://api.openweathermap.org/data/2.5/weather"
     const val HH_MM_A = "h:mm a"
@@ -18,9 +17,8 @@ object Utils {
     const val EEE_HH_MM_A = "EEE hh:mm a"
 
     fun getOpenWeatherUrlString(lat: String, lon: String): String {
-        var ab = StringBuilder(API_LINK)
+        val ab = StringBuilder(API_LINK)
         ab.append("?lat=${lat}&lon=${lon}&APPID=${API_KEY}&units=imperial")
-
         return ab.toString()
     }
 
@@ -28,6 +26,7 @@ object Utils {
         val urlString = "https://news.google.com/news/rss/search/section/q/technology?ned=us&gl=US&hl=en"
         return urlString
     }
+
 
     fun unixTimeStampToDateTime(unixTimeStamp: Double, format: String): String {
         val dateFormat = SimpleDateFormat(format)

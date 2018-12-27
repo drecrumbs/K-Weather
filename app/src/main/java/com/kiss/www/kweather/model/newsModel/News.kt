@@ -7,7 +7,7 @@ import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.io.InputStream
 
-class News(var title: String, var link: String, var description: String){
+class News(var title: String, var link: String, var description: String, var author:String?){
 
 
     companion object {
@@ -20,6 +20,7 @@ class News(var title: String, var link: String, var description: String){
             var link: String? = null
             var description: String? = null
             var isItem = false
+            var author: String? = null
             val items: ArrayList<News> = ArrayList()
 
             try {
@@ -49,12 +50,15 @@ class News(var title: String, var link: String, var description: String){
                     var result = ""
                     if (xmlPullParser.next() == XmlPullParser.TEXT) {
                         result = xmlPullParser.text
-                        Log.d("MyXmlParser", "Parsed ==> $name : $result")
                         xmlPullParser.nextTag()
                     }
 
                     if (name.equals("title", ignoreCase = true)) {
+                        author = result.substring(result.lastIndexOf("-"))
+                        result = result.removeRange(result.lastIndexOf("-") - 1, result.length)
                         title = result
+
+                        Log.d("MyXmlParser", "Parsed ==> $title : $author")
                     } else if (name.equals("link", ignoreCase = true)) {
                         link = result
                     } else if (name.equals("description", ignoreCase = true)) {
@@ -63,7 +67,7 @@ class News(var title: String, var link: String, var description: String){
 
                     if (title != null && link != null && description != null) {
                         if (isItem) {
-                            val item = News(title, link, description)
+                            val item = News(title, link, description, author)
                             items.add(item)
                         } else {
                             Log.d(logTag, "NEWS: Do Nothing..")

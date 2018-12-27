@@ -36,6 +36,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_weather.*
 import java.util.*
 import kotlin.concurrent.timerTask
+import kotlin.math.absoluteValue
 
 class MainActivity : FragmentActivity(),
         GoogleApiClient.ConnectionCallbacks,
@@ -43,7 +44,7 @@ class MainActivity : FragmentActivity(),
         SwipeRefreshLayout.OnRefreshListener,
         LoginStateController.OnLoginStateChangedListener,
         OnBitmojiSelectedListener,
-ViewPager.OnPageChangeListener{
+        ViewPager.OnPageChangeListener{
 
 
     object Constants {
@@ -88,10 +89,12 @@ ViewPager.OnPageChangeListener{
 
         val pagerAdapter = ScreenSlidePageAdapter(supportFragmentManager)
         contentViewPager.adapter = pagerAdapter
+        contentViewPager.setPageTransformer(false, ZoomOutPageTransformer())
         contentViewPager.addOnPageChangeListener(this)
     }
 
-    //Activity Lifecycle
+    //Activity Lifecycle and UI
+
     override fun onDestroy() {
         mGoogleApiClient?.disconnect()
         super.onDestroy()
@@ -124,6 +127,25 @@ ViewPager.OnPageChangeListener{
         if (hasFocus) restoreUI()
     }
 
+    override fun onBackPressed() {
+        when {
+            bitmojiSelectorIsShowing -> {
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                        .commit()
+                bitmojiSelectorIsShowing = false
+
+            }
+
+            contentViewPager.currentItem != 0 -> {
+                contentViewPager.setCurrentItem(contentViewPager.currentItem - 1, true)
+            }
+
+            else -> finish()
+        }
+    }
+
     private fun observeViewModel() {
         viewModel.weatherUpdate().observe(this, Observer<OpenWeather> { weather ->
             run {
@@ -149,10 +171,6 @@ ViewPager.OnPageChangeListener{
         viewModel.bitmojiUrlUpdate().observe(this, Observer { url ->
             bitmojiUrl = url
             updateBitmojiAvatar()
-        })
-
-        viewModel.locationUpdate().observe(this, Observer { _ ->
-
         })
     }
 
@@ -190,14 +208,26 @@ ViewPager.OnPageChangeListener{
 
     //Bitmoji
 
+    private var bitmojiSelectorIsShowing: Boolean = false
+
     private fun showBitmojiSelector() {
         runOnUiThread {
             val bitmojiFragment = BitmojiFragment()
-
             supportFragmentManager.beginTransaction()
                     .replace(R.id.bottomContainer, bitmojiFragment)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit()
+            bitmojiSelectorIsShowing = true
+        }
+    }
+
+    private fun hideBitmojiSelector() {
+        runOnUiThread {
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                    .commit()
+            bitmojiSelectorIsShowing = false
         }
     }
 
@@ -246,14 +276,11 @@ ViewPager.OnPageChangeListener{
 
     override fun onBitmojiSelected(p0: String?, p1: Drawable?) {
         viewModel.bitmojiURL.value = p0
-        saveSharedPreference(Constants.SHARED_PREFERENCES, "${bitmojiUrl}")
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-                .commit()
+        saveSharedPreference(Constants.SHARED_PREFERENCES, "$bitmojiUrl")
+        hideBitmojiSelector()
     }
 
-    // Permissions & Location
+    // Permissions & Google Play Services
 
     private fun requestPermissions() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -308,6 +335,8 @@ ViewPager.OnPageChangeListener{
         return true
     }
 
+    // Location
+
     override fun onConnectionFailed(p0: ConnectionResult) {
         Log.i("ERROR", "Connection failed: " + p0.errorCode)
     }
@@ -360,6 +389,29 @@ ViewPager.OnPageChangeListener{
                 .getString("$key", "${(defaultValue)}")
     }
 
+    // ViewPager Scroll Listener
+
+    override fun onPageScrollStateChanged(state: Int) {}
+
+    override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+    }
+
+    override fun onPageSelected(position: Int) {
+        val colorArray = resources.getIntArray(R.array.colors)
+        val toColor = colorArray[position]
+
+        val fromColor =
+                if (rootLayout.background is ColorDrawable)
+                    (rootLayout.background as ColorDrawable).color
+                else
+                    Color.BLACK
+
+        viewModel.currentBackgroundColor = toColor
+        changeBackground(fromColor, toColor)
+    }
+
+    // Additional Classes
+
     private inner class ScreenSlidePageAdapter(supportFragmentManager: FragmentManager?) : FragmentStatePagerAdapter(supportFragmentManager) {
         override fun getItem(position: Int): Fragment {
             Log.d("GET ITEM", position.toString())
@@ -377,7 +429,40 @@ ViewPager.OnPageChangeListener{
         override fun getCount(): Int = Constants.NUM_PAGES
     }
 
-    inner class EventListener : CircleMenuView.EventListener() {
+    private inner class ZoomOutPageTransformer : ViewPager.PageTransformer {
+        private val minScale = 0.85f
+        private val minAlpha = 0.5f
+
+        override fun transformPage(view: View, position: Float) {
+            view.apply {
+                val pageWidth = width
+                val pageHeight = height
+                when {
+                    position.absoluteValue <= 1 -> { // [-1,1] Modify the default slide transition to shrink the page as well
+                        val scaleFactor = Math.max(minScale, 1 - Math.abs(position))
+                        val vertMargin = pageHeight * (1 - scaleFactor) / 2
+                        val horzMargin = pageWidth * (1 - scaleFactor) / 2
+                        translationX = if (position < 0) {
+                            horzMargin - vertMargin / 2
+                        } else {
+                            horzMargin + vertMargin / 2
+                        }
+
+                        // Scale the page down (between minScale and 1)
+                        scaleX = scaleFactor
+                        scaleY = scaleFactor
+
+                        // Fade the page relative to its size.
+                        alpha = (minAlpha +
+                                (((scaleFactor - minScale) / (1 - minScale)) * (1 - minAlpha)))
+                    }
+                    else -> { alpha = 0f /* (-Infinity ,+Infinity) This page is way off-screen.*/ }
+                }
+            }
+        }
+    }
+
+    private inner class EventListener : CircleMenuView.EventListener() {
         private var prevButtonIndex: Int = 0
         override fun onButtonClickAnimationStart(view: CircleMenuView, buttonIndex: Int) {
             Log.d(javaClass.simpleName, "Button Click: ${view.id}")
@@ -406,25 +491,6 @@ ViewPager.OnPageChangeListener{
                 changeBackground(fromColor, toColor)
             }
         }
-    }
-
-    override fun onPageScrollStateChanged(state: Int) {}
-
-    override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
-
-    override fun onPageSelected(position: Int) {
-        Log.d(localClassName, "Page scrolled")
-        val colorArray = resources.getIntArray(R.array.colors)
-        val toColor = colorArray[position]
-
-        val fromColor =
-                if (rootLayout.background is ColorDrawable)
-                    (rootLayout.background as ColorDrawable).color
-                else
-                    Color.BLACK
-
-        viewModel.currentBackgroundColor = toColor
-        changeBackground(fromColor, toColor)
     }
 }
 

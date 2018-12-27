@@ -45,7 +45,9 @@ class WeatherFragment : Fragment() {
                 openWeather = weather
                 if (openWeather.weather != null) {
                     Log.d(logTag, "weatherUpdate() Obeservable -> Weather: ${weather?.weather?.get(0)}")
-                    updateWeatherUI(weather)
+                    activity?.runOnUiThread{
+                        updateWeatherUI(weather)
+                    }
                 }
             }
         })
@@ -56,6 +58,7 @@ class WeatherFragment : Fragment() {
     }
 
     private fun updateWeatherUI(openWeather: OpenWeather) {
+
         container.visibility = View.INVISIBLE
         //Set Information into UI
         txtCity.text = "${openWeather.name}"
