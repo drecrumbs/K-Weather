@@ -13,8 +13,6 @@ class NewsFragmentViewModel : ViewModel() {
 
     var newsList: MutableLiveData<List<News>> = model.newsList
 
-    // TODO: Implement the ViewModel
-
     fun refreshNews() {
         model.refreshNews()
     }
