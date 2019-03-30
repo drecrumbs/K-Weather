@@ -9,10 +9,19 @@
         <item>@drawable/ic_close_black_24dp</item>
     </array>
     <array name="colors">
-        <item>@android:color/holo_blue_light</item>
+        <item>@android:color/black</item>
+        <item>@android:color/holo_red_dark</item>
         <item>@android:color/holo_green_dark</item>
-        <item>@android:color/holo_red_light</item>
         <item>@android:color/holo_purple</item>
         <item>@android:color/holo_orange_light</item>
     </array>
+
+    <array name="button_colors">
+        <item>@android:color/white</item>
+        <item>@android:color/holo_red_dark</item>
+        <item>@android:color/holo_green_dark</item>
+        <item>@android:color/holo_purple</item>
+        <item>@android:color/holo_orange_light</item>
+    </array>
+
 </resources>

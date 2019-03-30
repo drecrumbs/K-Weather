@@ -33,7 +33,7 @@ import com.snapchat.kit.sdk.bitmoji.networking.FetchAvatarUrlCallback
 import com.snapchat.kit.sdk.bitmoji.ui.BitmojiFragment
 import com.snapchat.kit.sdk.core.controller.LoginStateController
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_weather.*
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import kotlin.concurrent.timerTask
 import kotlin.math.absoluteValue
@@ -67,7 +67,7 @@ class MainActivity : FragmentActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_weather)
+        setContentView(R.layout.activity_main)
 
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
 
@@ -204,6 +204,8 @@ class MainActivity : FragmentActivity(),
             createLocationRequest()
             layoutSwipeRefresh.isRefreshing = false
         }
+
+        viewModel.refreshNews()
     }
 
     //Bitmoji
@@ -421,7 +423,7 @@ class MainActivity : FragmentActivity(),
                 1 -> // News
                     return NewsFragment.newInstance()
             }
-            Log.d("GET ITEM", "WTF")
+            Log.e("GET ITEM", "WTF")
             return Fragment()
         }
 
@@ -476,7 +478,7 @@ class MainActivity : FragmentActivity(),
                     else
                         Color.BLACK
 
-            if (prevButtonIndex != buttonIndex) {
+    //        if (prevButtonIndex != buttonIndex) {
                 when (buttonIndex) {
                     0 ->  // Weather
                         contentViewPager.setCurrentItem(0, true)
@@ -489,7 +491,7 @@ class MainActivity : FragmentActivity(),
                 prevButtonIndex = buttonIndex
                 viewModel.currentBackgroundColor = toColor
                 changeBackground(fromColor, toColor)
-            }
+  //          }
         }
     }
 }

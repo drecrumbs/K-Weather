@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/background_dark"
+    android:color="@android:color/background_dark"
     android:orientation="vertical"
     tools:context="com.kiss.www.kweather.MainActivity">
 
@@ -14,18 +14,20 @@
         android:id="@+id/layoutSwipeRefresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:color="@android:color/background_dark"
         tools:context="com.kiss.www.kweather.MainActivity">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layoutWeatherContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center">
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/contentViewPager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
-
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
@@ -41,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|bottom"
-            app:button_colors="@array/colors"
+            app:button_colors="@array/button_colors"
             app:button_icons="@array/icons"
             app:layout_constraintBottom_toTopOf="@id/txtLastUpdate"
             app:layout_constraintRight_toRightOf="parent" />
@@ -59,8 +61,8 @@
 
         <ImageView
             android:id="@+id/imgWeatherIcon"
-            android:layout_width="400dp"
-            android:layout_height="400dp"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
             android:layout_gravity="top|start|center"
             android:layout_margin="30dp"
             android:contentDescription="Weather Icon"
