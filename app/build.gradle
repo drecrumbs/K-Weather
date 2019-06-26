@@ -15,6 +15,19 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        proguardFiles
+
+        ndk {
+            abiFilters "armeabi-v7a", "x86"
+        }
+    }
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'x86', 'armeabi-v7a', 'x86_64'
+            universalApk true
+        }
     }
     buildTypes {
         release {
@@ -25,6 +38,17 @@ android {
             minifyEnabled false
         }
     }
+    sourceSets { main { jni.srcDirs = ['src/main/jni/','src/main/jniLibs/'] } }
+//    externalNativeBuild {
+//        ndkBuild {
+//            path 'build/intermediates/ndk/debug/Android.mk'
+//        }
+//    }
+    compileOptions {
+        sourceCompatibility = '1.7'
+        targetCompatibility = '1.7'
+    }
+    buildToolsVersion = '28.0.3'
 }
 
 dependencies {
@@ -42,10 +66,10 @@ dependencies {
 
     //Custom Views
     implementation('com.github.pwittchen:weathericonview:1.1.0')
-    implementation('com.ramotion.circlemenu:circle-menu:0.3.1')
+    implementation('com.ramotion.circlemenu:circle-menu:0.3.2')
 
     //Utils
-    implementation('com.google.code.gson:gson:2.8.2')
+    implementation('com.google.code.gson:gson:2.8.5')
     implementation('com.squareup.picasso:picasso:2.71828')
 
     //BitMoji
@@ -55,7 +79,7 @@ dependencies {
     implementation "com.snapchat.kit.sdk:bitmoji-search:$bitmoji_sdk_version"
 
     // Testing
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    testImplementation 'junit:junit:4.13-beta-3'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }

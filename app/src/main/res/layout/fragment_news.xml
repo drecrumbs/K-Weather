@@ -11,7 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/newsContainer"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="800dp"
         android:animateLayoutChanges="true"
         android:orientation="vertical"
         android:padding="10dp">
@@ -21,18 +21,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:layout_marginStart="16dp"
             android:layout_marginBottom="8dp"
             android:animateLayoutChanges="true"
-            android:minWidth="150dp"
+            android:autoSizeMaxTextSize="40sp"
+            android:autoSizeMinTextSize="15sp"
             android:maxWidth="300dp"
             android:maxHeight="300dp"
+            android:minWidth="150dp"
             android:textColor="@android:color/white"
             android:textSize="20sp"
-            android:autoSizeMinTextSize="15sp"
-            android:autoSizeMaxTextSize="40sp"
             app:layout_constraintBottom_toTopOf="@+id/newsItemThree"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.359"
             tools:text="News Item TWO\n its really really long and filled with stuff\n-Detroit Free Pree" />
 
         <TextView
@@ -67,9 +69,11 @@
             android:textColor="@android:color/white"
             android:textSize="40sp"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.4"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.371"
             tools:text="News Item THREE\n its really really long and filled with stuff" />
 
         <TextView
@@ -77,17 +81,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:layout_marginStart="104dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="220dp"
             android:layout_marginBottom="8dp"
             android:animateLayoutChanges="true"
-            android:minWidth="150dp"
+            android:autoSizeMaxTextSize="40sp"
+            android:autoSizeMinTextSize="15sp"
             android:maxWidth="300dp"
             android:maxHeight="400dp"
-            android:autoSizeMinTextSize="15sp"
-            android:autoSizeMaxTextSize="40sp"
+            android:minWidth="150dp"
             android:textColor="@android:color/white"
             android:textSize="25sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline"
+            app:layout_constraintTop_toBottomOf="@+id/newsItemFive"
             tools:text="News Item FOUR\n its really really long and filled with stuff" />
 
         <TextView
@@ -95,19 +104,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:animateLayoutChanges="true"
-            android:autoSizeMinTextSize="15sp"
             android:autoSizeMaxTextSize="40sp"
-            android:minWidth="150dp"
+            android:autoSizeMinTextSize="15sp"
             android:maxWidth="400dp"
             android:maxHeight="300dp"
+            android:minWidth="150dp"
             android:textColor="@android:color/white"
             android:textSize="30sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/newsItemFour"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toBottomOf="@id/newsItemThree"
+            app:layout_constraintVertical_bias="0.117"
             tools:text="News Item FIVE\n its really really long and filled with stuff" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="392dp" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

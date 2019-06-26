@@ -1,9 +1,9 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="android:windowFullscreen">true</item>
+        <!--<item name="android:windowFullscreen">true</item>-->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="android:colorBackground">@android:color/black</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -11,6 +11,13 @@
     </style>
 
     <style name="Widget.Support.CoordinatorLayout" parent="android:Widget">
-        <item name="statusBarBackground">@android:color/black</item>
+        <!--<item name="statusBarBackground">@android:color/black</item>-->
+    </style>
+
+    <style name="weatherTabLayout" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">top</item>
+        <item name="android:theme">@style/Widget.MaterialComponents.TabLayout.Colored</item>
     </style>
 </resources>

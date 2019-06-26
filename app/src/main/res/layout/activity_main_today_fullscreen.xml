@@ -14,7 +14,7 @@
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/contentViewPager"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_marginBottom="8dp"
         android:animateLayoutChanges="true"
         app:layout_constraintBottom_toTopOf="@+id/guideline2"
@@ -48,14 +48,13 @@
     <TextView
         android:id="@+id/fifteenDayOutlookTitle"
         android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_weight="0"
         android:fontFamily="sans-serif-condensed"
         android:text="Next 7 Days"
         android:textColor="@android:color/black"
         android:textSize="25sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/outlookRecyclerView"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline2"
@@ -67,41 +66,40 @@
         android:layout_height="0dp"
         android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/fifteenDayOutlookTitle"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
 
     <TextView
-            android:id="@+id/txtLastUpdate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|start"
+        android:id="@+id/txtLastUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
         android:textColor="@android:color/black"
-            android:textSize="12sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            tools:text="Last Updated: Sun, 9 Dec 2018 9:33pm" />
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:text="Last Updated: Sun, 9 Dec 2018 9:33pm" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/bitmojiCharacter"
         android:layout_width="150dp"
         android:layout_height="150dp"
-            android:layout_gravity="top|start|center"
-            android:layout_margin="30dp"
-            android:contentDescription="Weather Icon"
-            android:src="@mipmap/ic_launcher"
+        android:layout_gravity="top|start|center"
+        android:layout_margin="30dp"
+        android:contentDescription="Weather Icon"
+        android:src="@mipmap/ic_launcher"
         android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
         tools:ignore="HardcodedText"
-            tools:src="@tools:sample/avatars" />
+        tools:src="@tools:sample/avatars" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.60" />
+        app:layout_constraintGuide_percent="1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

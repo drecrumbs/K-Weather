@@ -11,12 +11,18 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.fragment.app.*
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager.widget.ViewPager
 import com.google.android.gms.common.ConnectionResult
@@ -25,12 +31,13 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.kiss.www.kweather.adapter.OutlookObject
+import com.kiss.www.kweather.adapter.OutlookRecyclerViewAdapter
 import com.kiss.www.kweather.model.weatherModel.OpenWeather
 import com.ramotion.circlemenu.CircleMenuView
 import com.snapchat.kit.sdk.Bitmoji
 import com.snapchat.kit.sdk.bitmoji.OnBitmojiSelectedListener
 import com.snapchat.kit.sdk.bitmoji.networking.FetchAvatarUrlCallback
-import com.snapchat.kit.sdk.bitmoji.ui.BitmojiFragment
 import com.snapchat.kit.sdk.core.controller.LoginStateController
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
@@ -62,6 +69,7 @@ class MainActivity : FragmentActivity(),
     private var mLocationCallback: LocationCallback? = null
     private var bitmojiUrl: String? = null
     private var timer: Timer = Timer()
+    private var isFullscreen = false
 
     private lateinit var viewModel: MainActivityViewModel
 
@@ -79,9 +87,9 @@ class MainActivity : FragmentActivity(),
         requestPermissions()
         observeViewModel()
 
-        imgWeatherIcon.setOnClickListener { showBitmojiSelector() }
-        layoutSwipeRefresh.setOnRefreshListener(this)
-        circleMenu.eventListener = EventListener()
+        bitmojiCharacter.setOnClickListener { showBitmojiSelector() }
+        //  layoutSwipeRefresh.setOnRefreshListener(this)
+        //  circleMenu.eventListener = EventListener()
 
         //todo Make a "Home" loading fragment. Change background once done loading
         val colorArray = resources.getIntArray(R.array.colors)
@@ -91,6 +99,23 @@ class MainActivity : FragmentActivity(),
         contentViewPager.adapter = pagerAdapter
         contentViewPager.setPageTransformer(false, ZoomOutPageTransformer())
         contentViewPager.addOnPageChangeListener(this)
+
+        val adapter: OutlookRecyclerViewAdapter =
+                if (!viewModel.cachedOutlookObject.isNullOrEmpty()) {
+                    OutlookRecyclerViewAdapter(viewModel.cachedOutlookObject!!)
+                } else {
+                    viewModel.cachedOutlookObject = OutlookObject.mockArray(this, 7)
+                    OutlookRecyclerViewAdapter(OutlookObject.mockArray(this, 7))
+                }
+
+        val layoutManager = LinearLayoutManager(this, LinearLayout.HORIZONTAL, false)
+        outlookRecyclerView.layoutManager = layoutManager
+        outlookRecyclerView.adapter = adapter
+        AnimationHelper.registerMainActivity(this)
+
+        menu_tabs.setupWithViewPager(contentViewPager, true)
+        //   menu_tabs.addTab(menu_tabs.newTab().setText("Next Week"))
+
     }
 
     //Activity Lifecycle and UI
@@ -105,7 +130,7 @@ class MainActivity : FragmentActivity(),
         Log.d(localClassName, "Creating DataFetch Timer")
         timer = Timer("DataFetch", false)
         timer.scheduleAtFixedRate(timerTask {
-            viewModel.refreshNews()
+            //  viewModel.refreshNews()
             viewModel.refreshWeather()
         },
         Constants.DATA_RETRIEVAL_INTERVAL,
@@ -127,29 +152,29 @@ class MainActivity : FragmentActivity(),
         if (hasFocus) restoreUI()
     }
 
-    override fun onBackPressed() {
-        when {
-            bitmojiSelectorIsShowing -> {
-                supportFragmentManager.beginTransaction()
-                        .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
-                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-                        .commit()
-                bitmojiSelectorIsShowing = false
-
-            }
-
-            contentViewPager.currentItem != 0 -> {
-                contentViewPager.setCurrentItem(contentViewPager.currentItem - 1, true)
-            }
-
-            else -> finish()
-        }
-    }
+//    override fun onBackPressed() {
+//        when {
+//            bitmojiSelectorIsShowing -> {
+//                supportFragmentManager.beginTransaction()
+//                        .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
+//                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+//                        .commit()
+//                bitmojiSelectorIsShowing = false
+//
+//            }
+//
+//            contentViewPager.currentItem != 0 -> {
+//                contentViewPager.setCurrentItem(contentViewPager.currentItem - 1, true)
+//            }
+//
+//            else -> finish()
+//        }
+//    }
 
     private fun observeViewModel() {
         viewModel.weatherUpdate().observe(this, Observer<OpenWeather> { weather ->
             run {
-                layoutSwipeRefresh.isRefreshing = false
+                //   layoutSwipeRefresh.isRefreshing = false
             }
         })
 
@@ -185,15 +210,15 @@ class MainActivity : FragmentActivity(),
 
         rootLayout.setBackgroundColor(viewModel.currentBackgroundColor)
 
-        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
-                // Set the content to appear under the system bars so that the
-                // content doesn't resize when the system bars hide and show.
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                // Hide the nav bar and status bar
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+//        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
+//                // Set the content to appear under the system bars so that the
+//                // content doesn't resize when the system bars hide and show.
+//                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                // Hide the nav bar and status bar
+//                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+//                or View.SYSTEM_UI_FLAG_FULLSCREEN)
     }
 
     //Swipe to Refresh
@@ -202,10 +227,10 @@ class MainActivity : FragmentActivity(),
         Log.d(localClassName, "OnRefresh()")
         if (mGoogleApiClient != null) {
             createLocationRequest()
-            layoutSwipeRefresh.isRefreshing = false
+            //   layoutSwipeRefresh.isRefreshing = false
         }
 
-        viewModel.refreshNews()
+        //    viewModel.refreshNews()
     }
 
     //Bitmoji
@@ -213,24 +238,24 @@ class MainActivity : FragmentActivity(),
     private var bitmojiSelectorIsShowing: Boolean = false
 
     private fun showBitmojiSelector() {
-        runOnUiThread {
-            val bitmojiFragment = BitmojiFragment()
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.bottomContainer, bitmojiFragment)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                    .commit()
-            bitmojiSelectorIsShowing = true
-        }
+//        runOnUiThread {
+//            val bitmojiFragment = BitmojiFragment()
+//            supportFragmentManager.beginTransaction()
+//                    .replace(R.id.bottomContainer, bitmojiFragment)
+//                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+//                    .commit()
+//            bitmojiSelectorIsShowing = true
+//        }
     }
 
     private fun hideBitmojiSelector() {
-        runOnUiThread {
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-                    .commit()
-            bitmojiSelectorIsShowing = false
-        }
+//        runOnUiThread {
+//            supportFragmentManager.beginTransaction()
+//                    .replace(R.id.bottomContainer, androidx.fragment.app.Fragment())
+//                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+//                    .commit()
+//            bitmojiSelectorIsShowing = false
+//        }
     }
 
     private fun updateBitmojiAvatar() {
@@ -248,7 +273,7 @@ class MainActivity : FragmentActivity(),
                                 .load("${url}")
                                 .resize(300, 300)
                                 .centerCrop()
-                                .into(imgWeatherIcon as ImageView)
+                                .into(bitmojiCharacter as ImageView)
                     }
                 }
 
@@ -260,7 +285,7 @@ class MainActivity : FragmentActivity(),
             Picasso.get()
                     .load("${bitmojiUrl}")
                     .fit()
-                    .into(imgWeatherIcon as ImageView)
+                    .into(bitmojiCharacter as ImageView)
         }
     }
 
@@ -406,34 +431,54 @@ class MainActivity : FragmentActivity(),
                 if (rootLayout.background is ColorDrawable)
                     (rootLayout.background as ColorDrawable).color
                 else
-                    Color.BLACK
+                    Color.WHITE
 
         viewModel.currentBackgroundColor = toColor
-        changeBackground(fromColor, toColor)
+        // changeBackground(fromColor, toColor)
+
+
+        when (position) {
+            0 -> AnimationHelper.showBottomContainer()
+            1 -> AnimationHelper.hideBottomContainer()
+        }
     }
 
     // Additional Classes
 
-    private inner class ScreenSlidePageAdapter(supportFragmentManager: FragmentManager?) : FragmentStatePagerAdapter(supportFragmentManager) {
+    private inner class ScreenSlidePageAdapter(supportFragmentManager: FragmentManager?) : FragmentStatePagerAdapter(supportFragmentManager!!) {
         override fun getItem(position: Int): Fragment {
-            Log.d("GET ITEM", position.toString())
+            Log.d("getItem() ->", position.toString())
             when (position) {
-                0 ->  // Weather
+                0 ->  // CurrentForecast
                     return WeatherFragment.newInstance()
-                1 -> // News
-                    return NewsFragment.newInstance()
+                1 -> // TomorrowForecast
+                    return WeatherFragment.newInstance()
+                3 -> // RadarMap
+                    return WeatherFragment.newInstance()
             }
-            Log.e("GET ITEM", "WTF")
             return Fragment()
         }
 
+        override fun getPageTitle(position: Int): CharSequence? {
+            return when (position) {
+                0 -> "Current"
+                1 -> "Tomorrow"
+                3 -> "Radar"
+                else -> ""
+            }
+        }
+
+        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
+            super.setPrimaryItem(container, position, `object`)
+        }
 
         override fun getCount(): Int = Constants.NUM_PAGES
     }
 
+
     private inner class ZoomOutPageTransformer : ViewPager.PageTransformer {
-        private val minScale = 0.85f
-        private val minAlpha = 0.5f
+        private val minScale = 1f
+        private val minAlpha = 0.9f
 
         override fun transformPage(view: View, position: Float) {
             view.apply {
@@ -445,9 +490,9 @@ class MainActivity : FragmentActivity(),
                         val vertMargin = pageHeight * (1 - scaleFactor) / 2
                         val horzMargin = pageWidth * (1 - scaleFactor) / 2
                         translationX = if (position < 0) {
-                            horzMargin - vertMargin / 2
+                            horzMargin - vertMargin / 20
                         } else {
-                            horzMargin + vertMargin / 2
+                            horzMargin + vertMargin / 20
                         }
 
                         // Scale the page down (between minScale and 1)

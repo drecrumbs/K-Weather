@@ -7,10 +7,12 @@ import androidx.lifecycle.ViewModel
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
+import com.kiss.www.kweather.adapter.OutlookObject
 import com.kiss.www.kweather.model.Model
 import com.kiss.www.kweather.model.weatherModel.OpenWeather
 
 class MainActivityViewModel : ViewModel() {
+    var cachedOutlookObject: Array<OutlookObject>? = null
     val logTag = javaClass.simpleName
 
     val model: Model = Model.getInstance()
@@ -18,7 +20,7 @@ class MainActivityViewModel : ViewModel() {
     val googleApiClient: MutableLiveData<GoogleApiClient> = MutableLiveData()
     var currentBackgroundColor: Int = Color.BLACK
     var bitmojiURL: MutableLiveData<String> = MutableLiveData()
-    var locationCallback: MutableLiveData<LocationCallback> = MutableLiveData()
+    private var locationCallback: MutableLiveData<LocationCallback> = MutableLiveData()
     var weather: MutableLiveData<OpenWeather> = MutableLiveData()
     var location: MutableLiveData<Pair<String, String>> = MutableLiveData()
 
@@ -41,7 +43,7 @@ class MainActivityViewModel : ViewModel() {
                 model.refreshWeather(location.value!!)
             }
         }
-        refreshNews()
+        //  refreshNews()
     }
 
     fun locationUpdate(): MutableLiveData<Pair<String, String>> {
