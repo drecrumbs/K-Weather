@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProviders
 import com.kiss.www.kweather.model.newsModel.News
 import kotlinx.android.synthetic.main.fragment_news.*
 import java.util.*
-import kotlin.concurrent.timerTask
 import kotlin.random.Random
 
 
@@ -46,18 +45,6 @@ class NewsFragment : Fragment() {
             activity?.runOnUiThread{setNewsFeed(newsList)}
         })
 
-    }
-
-    override fun onResume() {
-        super.onResume()
-        timer = Timer("newsFeed", false)
-        timer.scheduleAtFixedRate(
-                timerTask {
-                    Log.d(logTag, "Timer: Updating News Feed UI")
-                    activity?.runOnUiThread {updateNewsUI()}
-                },
-                10000,
-                10000)
     }
 
     override fun onPause() {

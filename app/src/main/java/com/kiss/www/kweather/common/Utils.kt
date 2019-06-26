@@ -11,7 +11,7 @@ import java.util.*
 
 object Utils {
     private const val API_KEY = "540717bb25664e4ed48aede738fb520f"
-    private const val API_LINK = "http://api.openweathermap.org/data/2.5/weather"
+    private const val API_LINK = "https://api.openweathermap.org/data/2.5/weather"
     const val HH_MM_A = "h:mm a"
     const val DAY_OF_WEEK_FORMAT_ = "EEE"
     const val EEE_HH_MM_A = "EEE hh:mm a"

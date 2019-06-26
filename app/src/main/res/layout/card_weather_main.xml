@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintLeft_toLeftOf="parent"
+    android:padding="5dp"
+    android:layout_gravity="center">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/weatherContent"
+        style="@style/Widget.MaterialComponents.CardView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="true"
+        android:elevation="5dp"
+        app:cardBackgroundColor="@color/colorPrimary"
+        app:cardCornerRadius="45dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:background="#005D50FE"
+            android:clipChildren="true">
+
+            <TextView
+                android:id="@+id/txtCity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:textColor="@color/colorPrimaryText"
+                android:textSize="35sp"
+                app:layout_constraintBottom_toTopOf="@+id/txtTemperature"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/txtWeatherIcon"
+                app:layout_constraintTop_toTopOf="@+id/txtWeatherIcon"
+                app:layout_constraintVertical_bias="0.121"
+                tools:text="Detroit, MI" />
+
+            <TextView
+                android:id="@+id/txtWeatherIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start|center"
+                android:layout_margin="30dp"
+                android:color="@color/colorPrimaryText"
+                android:fontFamily="@font/weather_font_family"
+                android:textSize="100sp"
+                android:visibility="visible"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/wi_day_cloudy" />
+
+            <com.github.pwittchen.weathericonview.WeatherIconView
+                android:id="@+id/my_weather_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="30dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/weather_font_family"
+                android:textSize="20sp"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:weatherIconColor="@android:color/white"
+                app:weatherIconResource="@string/wi_day_sunny_overcast"
+                app:weatherIconSize="200"
+                tools:text="@string/wi_day_cloudy" />
+
+            <TextView
+                android:id="@+id/txtTemperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="30dp"
+                android:textColor="@color/colorPrimaryText"
+                android:textSize="50sp"
+                app:layout_constraintBottom_toBottomOf="@+id/txtWeatherIcon"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/txtWeatherIcon"
+                app:layout_constraintTop_toTopOf="@+id/txtWeatherIcon"
+                app:layout_constraintVertical_bias=".7"
+                tools:text="70" />
+
+
+            <com.github.pwittchen.weathericonview.WeatherIconView
+                android:id="@+id/txtTempUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/weather_font_family"
+                android:textSize="30sp"
+                app:layout_constraintStart_toEndOf="@+id/txtTemperature"
+                app:layout_constraintTop_toTopOf="@+id/txtTemperature"
+                app:weatherIconColor="@android:color/white"
+                app:weatherIconResource="@string/wi_fahrenheit"
+                app:weatherIconSize="50"
+                tools:text="F" />
+
+            <com.github.pwittchen.weathericonview.WeatherIconView
+                android:id="@+id/txtMaxTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/weather_font_family"
+                android:textSize="50sp"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:src="@drawable/weather_sunset_down"
+                tools:text="@string/wi_thermometer" />
+
+            <TextView
+                android:id="@+id/txtDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:textColor="@color/colorPrimaryText"
+                android:textSize="30sp"
+                app:layout_constraintStart_toStartOf="@+id/txtWeatherIcon"
+                app:layout_constraintTop_toBottomOf="@id/txtWeatherIcon"
+                tools:text="Mist" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtDescription">
+
+                <LinearLayout
+                    android:id="@+id/sunriseSunsetContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/imgSunrise"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_margin="5dp"
+                        android:src="@drawable/weather_sunset_up"
+                        tools:ignore="ContentDescription"
+                        tools:src="@drawable/weather_sunset_up" />
+
+                    <TextView
+                        android:id="@+id/txtSunriseTime"
+                        android:layout_width="150dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginEnd="8dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
+                        android:textColor="@color/colorPrimaryText"
+                        android:textSize="15sp"
+                        tools:text="Sunrise: 10:18 AM" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/imgSunset"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_margin="5dp"
+                        android:src="@drawable/weather_sunset_down"
+                        tools:ignore="ContentDescription"
+                        tools:src="@drawable/weather_sunset_down" />
+
+                    <TextView
+                        android:id="@+id/txtSunsetTime"
+                        android:layout_width="150dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginEnd="8dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
+                        android:textColor="@color/colorPrimaryText"
+                        android:textSize="15sp"
+                        tools:text="Sunset: 5:34 PM" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtHumidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@color/colorPrimaryText"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/txtDescription"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/txtTemperature"
+                    app:layout_constraintTop_toBottomOf="@id/txtDescription"
+                    tools:text="80% Humidity" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>
