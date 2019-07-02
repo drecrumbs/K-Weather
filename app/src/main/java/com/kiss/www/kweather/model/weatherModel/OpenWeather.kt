@@ -2,7 +2,9 @@ package com.kiss.www.kweather.model.weatherModel
 
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Response
 
 /**
  * Created by Dre on 12/24/2017.
@@ -23,17 +25,12 @@ class OpenWeather(var coord: Coord? = null,
                   var cod: Int = 0) {
 
     companion object {
-        fun getOpenWeatherObject(vararg json:String): OpenWeather {
-            var openWeather = OpenWeather()
-            if (json.contains("Error: Not found city")) {
-                Log.e(this.javaClass.simpleName, "City Was Not Found!")
-                return openWeather
-            }
+        private const val TAG = "OpenWeather"
+        private val gson = Gson()
 
-            val gson = Gson()
-            val mType = object : TypeToken<OpenWeather>() {}.type
-            openWeather = gson.fromJson<OpenWeather>(json[0], mType)
-            return openWeather
+        suspend fun getOpenWeatherObject(response: Response?): OpenWeather = withContext(Dispatchers.Default) {
+            Log.i(TAG, "NEW WEATHER OBJECT -> ${response?.body}")
+            gson.fromJson(response?.body?.charStream(), OpenWeather::class.java)
         }
     }
 }

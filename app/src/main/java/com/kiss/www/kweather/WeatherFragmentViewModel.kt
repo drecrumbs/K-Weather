@@ -1,6 +1,5 @@
 package com.kiss.www.kweather
 
-import android.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.common.api.GoogleApiClient
@@ -15,7 +14,6 @@ class WeatherFragmentViewModel : ViewModel() {
 
     val googleApiClient: MutableLiveData<GoogleApiClient> = MutableLiveData()
 
-    var currentBackgroundColor: Int = Color.BLACK
     var bitmojiURL: MutableLiveData<String> = MutableLiveData()
     var locationCallback: MutableLiveData<LocationCallback> = MutableLiveData()
     var weather: MutableLiveData<OpenWeather> = MutableLiveData()
