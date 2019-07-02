@@ -92,8 +92,8 @@ class MainActivity : FragmentActivity(),
         //  circleMenu.eventListener = EventListener()
 
         //todo Make a "Home" loading fragment. Change background once done loading
-        val colorArray = resources.getIntArray(R.array.colors)
-        changeBackground(viewModel.currentBackgroundColor, colorArray[0])
+//        val colorArray = resources.getIntArray(R.array.colors)
+//        changeBackground(viewModel.currentBackgroundColor, colorArray[0])
 
         val pagerAdapter = ScreenSlidePageAdapter(supportFragmentManager)
         contentViewPager.adapter = pagerAdapter
@@ -208,7 +208,7 @@ class MainActivity : FragmentActivity(),
 
     private fun restoreUI() {
 
-        rootLayout.setBackgroundColor(viewModel.currentBackgroundColor)
+        // rootLayout.setBackgroundColor(viewModel.currentBackgroundColor)
 
 //        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
 //                // Set the content to appear under the system bars so that the
@@ -375,8 +375,9 @@ class MainActivity : FragmentActivity(),
 
     private fun createLocationRequest() {
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions()
             return
         }
 
@@ -451,10 +452,10 @@ class MainActivity : FragmentActivity(),
             when (position) {
                 0 ->  // CurrentForecast
                     return WeatherFragment.newInstance()
-                1 -> // TomorrowForecast
-                    return WeatherFragment.newInstance()
-                3 -> // RadarMap
-                    return WeatherFragment.newInstance()
+//                1 -> // RadarMap
+//                    return WeatherFragment.newInstance()
+//                3 -> // RadarMap
+//                    return WeatherFragment.newInstance()
             }
             return Fragment()
         }
@@ -462,8 +463,8 @@ class MainActivity : FragmentActivity(),
         override fun getPageTitle(position: Int): CharSequence? {
             return when (position) {
                 0 -> "Current"
-                1 -> "Tomorrow"
-                3 -> "Radar"
+                1 -> "Radar"
+                3 -> "Timeline"
                 else -> ""
             }
         }
@@ -517,11 +518,11 @@ class MainActivity : FragmentActivity(),
             val colorArray = resources.getIntArray(R.array.colors)
             val toColor = colorArray[buttonIndex]
 
-            val fromColor =
-                    if (rootLayout.background is ColorDrawable)
-                        (rootLayout.background as ColorDrawable).color
-                    else
-                        Color.BLACK
+//            val fromColor =
+//                    if (rootLayout.background is ColorDrawable)
+//                        (rootLayout.background as ColorDrawable).color
+//                    else
+//                        Color.BLACK
 
     //        if (prevButtonIndex != buttonIndex) {
                 when (buttonIndex) {
@@ -535,7 +536,7 @@ class MainActivity : FragmentActivity(),
 
                 prevButtonIndex = buttonIndex
                 viewModel.currentBackgroundColor = toColor
-                changeBackground(fromColor, toColor)
+            //   changeBackground(fromColor, toColor)
   //          }
         }
     }

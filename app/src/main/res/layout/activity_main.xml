@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:background="#00FFFFFF"
             app:tabGravity="center"
-            app:tabIndicatorAnimationDuration="1000"
+            app:tabIndicatorAnimationDuration="200"
             app:tabIndicatorColor="@color/colorPrimary"
             app:tabIndicatorGravity="bottom"
             app:tabRippleColor="#00FFFFFF"
@@ -48,7 +48,8 @@
     <TextView
         android:id="@+id/fifteenDayOutlookTitle"
         android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_weight="0"
         android:fontFamily="sans-serif-condensed"
         android:text="Next 7 Days"

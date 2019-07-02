@@ -9,6 +9,7 @@ import com.kiss.www.kweather.model.weatherModel.OpenWeather
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.Response
 import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 
@@ -16,6 +17,7 @@ import java.nio.charset.Charset
 class Model {
     companion object {
         private val mInstance: Model = Model()
+        val http = HttpHelper()
 
         @Synchronized
         fun getInstance(): Model {
@@ -29,37 +31,35 @@ class Model {
     var openWeather: MutableLiveData<OpenWeather> = MutableLiveData()
     var newsList: MutableLiveData<List<News>> = MutableLiveData()
 
-    fun refreshWeather(mLocation: Pair<String, String> = location.value!!) = runBlocking {
+    suspend fun refreshWeather(mLocation: Pair<String, String> = location.value!!) = runBlocking {
         val openWeatherUrlString = Utils.getOpenWeatherUrlString(mLocation.first, mLocation.second)
         Log.d(logTag, "WEATHER DATA FETCH -> $openWeatherUrlString")
+        openWeather.value = withContext(Dispatchers.Default) { weatherFetch(openWeatherUrlString) }
+    }
 
-        openWeather.value = withContext(Dispatchers.IO) {fetchWeather(mLocation)}
+    suspend fun weatherFetch(urlString: String): OpenWeather = withContext(Dispatchers.IO) {
+        val response = withContext(Dispatchers.Default) {
+            http.okHttpGet(urlString)
+        }
+        OpenWeather.getOpenWeatherObject(response)
     }
 
     fun refreshNews() = runBlocking {
         val newsUrlString = Utils.getNewsUrlString()
         Log.d(logTag, "NEWS DATA FETCH -> $newsUrlString")
 
-        newsList.value = withContext(Dispatchers.IO) {fetchNews()}
+        //  newsList.value = withContext(Dispatchers.IO) {fetchNews()}
     }
 
-    private fun fetchWeather(location: Pair<String, String>):OpenWeather {
-            val stream: String?
-            val urlString = Utils.getOpenWeatherUrlString(location.first, location.second)
-            val http = HttpHelper()
-            stream = http.getHTTPData(urlString)
-
-            return if (stream != null) OpenWeather.getOpenWeatherObject(stream) else OpenWeather()
-    }
-
-    private fun fetchNews():List<News> {
-        val stream: String?
+    private suspend fun fetchNews(): List<News> {
+        val stream: Response?
         val urlString = Utils.getNewsUrlString()
         val http = HttpHelper()
 
-        stream = http.getHTTPData(urlString)
+        //  stream = http.getHTTPData(urlString)
+        stream = http.okHttpGet(urlString)
 
-        val inputStream = ByteArrayInputStream(stream.toByteArray(Charset.defaultCharset())) // Default is always UTF-8 on Android
+        val inputStream = ByteArrayInputStream(stream?.toString()?.toByteArray(Charset.defaultCharset())) // Default is always UTF-8 on Android
         return if (stream != null) News.parseFeed(inputStream) else ArrayList()
     }
 

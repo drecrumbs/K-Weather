@@ -57,6 +57,7 @@ dependencies {
     //Google
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_ext_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_ext_version"
     implementation "androidx.legacy:legacy-support-v4:$androidx_legacy_support_version"
     implementation "androidx.core:core:$androidx_core_version"
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layouts_version"
@@ -77,6 +78,9 @@ dependencies {
     implementation "com.snapchat.kit.sdk:core:$bitmoji_sdk_version"
     implementation "com.snapchat.kit.sdk:bitmoji:$bitmoji_sdk_version"
     implementation "com.snapchat.kit.sdk:bitmoji-search:$bitmoji_sdk_version"
+
+    //OkHTTP
+    implementation("com.squareup.okhttp3:okhttp:$okhttp_version")
 
     // Testing
     testImplementation 'junit:junit:4.13-beta-3'

@@ -1,5 +1,6 @@
 package com.kiss.www.kweather
 
+import android.animation.ValueAnimator
 import android.transition.TransitionManager
 import android.util.Log
 import android.view.View
@@ -8,7 +9,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 object AnimationHelper {
     lateinit var mainActivity: MainActivity
-    val TAG = AnimationHelper.javaClass.simpleName
+    private val TAG: String = AnimationHelper.javaClass.simpleName
 
     fun registerMainActivity(activity: MainActivity) {
         log("Activity Registered")
@@ -17,16 +18,41 @@ object AnimationHelper {
 
     fun hideBottomContainer() {
         log("Hide Bottom Container")
-        mainActivity.outlookRecyclerView.visibility = View.GONE
-        mainActivity.fifteenDayOutlookTitle.visibility = View.GONE
-        // mainActivity.bottomContainer.visibility = View.GONE
+
+        val bottomContainer = mainActivity.outlookRecyclerView
+        val bottomContainerTitle = mainActivity.fifteenDayOutlookTitle
+        val animator = ValueAnimator.ofFloat(1f, 0f)
+        animator.duration = 100
+
+        animator.addUpdateListener {
+            bottomContainer.alpha = it.animatedFraction
+            bottomContainerTitle.alpha = it.animatedFraction
+
+            if (it.animatedFraction == 0f) {
+                bottomContainer.visibility = View.GONE
+                bottomContainerTitle.visibility = View.GONE
+            }
+        }
+
+        animator.start()
     }
 
     fun showBottomContainer() {
         log("Show Bottom Container")
-        mainActivity.outlookRecyclerView.visibility = View.VISIBLE
-        mainActivity.fifteenDayOutlookTitle.visibility = View.VISIBLE
-        //  mainActivity.bottomContainer.visibility = View.GONE
+        val bottomContainer = mainActivity.outlookRecyclerView
+        val bottomContainerTitle = mainActivity.fifteenDayOutlookTitle
+        val animator = ValueAnimator.ofFloat(0f, 1f)
+        animator.duration = 100
+        animator.addUpdateListener {
+            bottomContainer.alpha = it.animatedFraction
+            bottomContainerTitle.alpha = it.animatedFraction
+
+            if (it.animatedFraction == 0.0f) {
+                bottomContainer.visibility = View.VISIBLE
+                bottomContainerTitle.visibility = View.VISIBLE
+            }
+        }
+        animator.start()
     }
 
     fun mainWeatherCardExpandFullscreen() {
@@ -45,6 +71,31 @@ object AnimationHelper {
 
         TransitionManager.beginDelayedTransition(mainActivity.rootLayout)
         constraintSet2.applyTo(mainActivity.rootLayout)
+    }
+
+    fun animateAlphaToHide(view: View, duration: Long) {
+        log("animateAlphaToHide: $view $duration")
+        val animator = ValueAnimator.ofFloat(view.alpha, 0f)
+
+        animator.duration = duration
+
+        animator.addUpdateListener {
+            view.alpha = it.animatedFraction
+        }
+
+        animator.start()
+    }
+
+    fun animateAlphaToShow(view: View, duration: Long) {
+        log("animateAlphaToShow: $view $duration")
+        val animator = ValueAnimator.ofFloat(view.alpha, 1f)
+        animator.duration = duration
+
+        animator.addUpdateListener {
+            view.alpha = it.animatedFraction
+        }
+
+        animator.start()
     }
 
     private fun log(message: String) {

@@ -13,12 +13,14 @@ import com.kiss.www.kweather.common.Utils
 import com.kiss.www.kweather.common.Utils.unixTimeStampToDateTime
 import com.kiss.www.kweather.model.weatherModel.OpenWeather
 import kotlinx.android.synthetic.main.card_weather_main.*
+import kotlinx.coroutines.runBlocking
 
 
 class WeatherFragment : Fragment() {
 
     companion object {
         fun newInstance() = WeatherFragment()
+        private lateinit var weatherFont: Typeface
     }
 
     private val logTag = javaClass.simpleName
@@ -36,10 +38,9 @@ class WeatherFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(WeatherFragmentViewModel::class.java)
+        weatherFont = Typeface.createFromAsset(context?.assets, "fonts/weather_font_regular.ttf")
 
-        //Set TypeFaces
-        txtWeatherIcon.typeface = Typeface.createFromAsset(context?.assets, "fonts/weather_font_regular.ttf")
-        txtTempUnit.typeface = Typeface.createFromAsset(context?.assets, "fonts/weather_font_regular.ttf")
+        init()
 
         //Register ViewModels
         viewModel.weatherUpdate().observe(this, Observer<OpenWeather> { weather ->
@@ -51,9 +52,9 @@ class WeatherFragment : Fragment() {
 
         })
 
-        viewModel.locationUpdate().observe(this, Observer { location ->
-            Log.i(logTag, "Location Updated: ${location.first}, ${location.second}")
-        })
+//        viewModel.locationUpdate().observe(this, Observer { location ->
+//            Log.i(logTag, "Location Updated: ${location.first}, ${location.second}")
+//        })
 
         weatherContent.setOnClickListener {
             isFullscreen = !isFullscreen
@@ -61,7 +62,25 @@ class WeatherFragment : Fragment() {
         }
     }
 
-    private fun updateWeatherUI(openWeather: OpenWeather) {
+    private fun init() {
+        //Set TypeFaces
+        txtWeatherIcon.typeface = weatherFont
+        txtTempUnit.typeface = weatherFont
+
+        txtCity.alpha = 0f
+        txtDescription.alpha = 0f
+        txtSunriseTime.alpha = 0f
+        txtSunsetTime.alpha = 0f
+        txtHumidity.alpha = 0f
+        txtTemperature.alpha = 0f
+        txtTempUnit.alpha = 0f
+        txtWeatherIcon.alpha = 0f
+        imgSunrise.alpha = 0f
+        imgSunset.alpha = 0f
+        weatherContent.alpha = 0f
+    }
+
+    private fun updateWeatherUI(openWeather: OpenWeather) = runBlocking {
         activity?.runOnUiThread {
             //Set Information into UI
             txtCity.text = "${openWeather.name}"
@@ -73,7 +92,6 @@ class WeatherFragment : Fragment() {
             txtSunsetTime.text = String.format("Sunset: %s", unixTimeStampToDateTime(openWeather.sys!!.sunset, Utils.HH_MM_A))
             txtHumidity.text = String.format("Humidity: %.0f%%", openWeather.main!!.humidity)
             txtTemperature.text = "${openWeather.main!!.temp.toInt()}"
-
             txtWeatherIcon.text = when (openWeather.weather!![0].icon!!) {
                 "50n" -> getString(R.string.wi_night_fog)
                 "50d" -> getString(R.string.wi_day_fog)
@@ -95,6 +113,19 @@ class WeatherFragment : Fragment() {
                 "01d" -> getString(R.string.wi_day_sunny)
                 else -> getString(R.string.wi_alien)
             }
+
+            AnimationHelper.animateAlphaToShow(weatherContent, 500)
+            AnimationHelper.animateAlphaToShow(txtCity, 1000)
+            AnimationHelper.animateAlphaToShow(txtDescription, 1000)
+            AnimationHelper.animateAlphaToShow(txtSunriseTime, 1000)
+            AnimationHelper.animateAlphaToShow(txtSunsetTime, 1000)
+            AnimationHelper.animateAlphaToShow(txtHumidity, 1000)
+            AnimationHelper.animateAlphaToShow(txtTemperature, 1000)
+            AnimationHelper.animateAlphaToShow(txtTempUnit, 1000)
+            AnimationHelper.animateAlphaToShow(txtWeatherIcon, 1000)
+            AnimationHelper.animateAlphaToShow(imgSunrise, 1000)
+            AnimationHelper.animateAlphaToShow(imgSunset, 1000)
+
         }
     }
 
